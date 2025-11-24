@@ -1,0 +1,13 @@
+[rpc]
+listen_addr = "127.0.0.1:8234"
+
+[grpc]
+listen_addr = "127.0.0.1:9067"
+
+[zebra]
+rpc_endpoint = "http://127.0.0.1:8232"
+rpc_user = "__cookie__"
+rpc_password = "e54UhlkEiULUuieSKNsXaEfG7xjck1SvMq27pt5eBf4="
+
+[indexer]
+db_path = "/home/limitlxx/.zcash/zaino-data"

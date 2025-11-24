@@ -1,0 +1,67 @@
+/*
+ * Toggle Switch Component Styles
+ * --------------------------------------------------
+ * This file contains styles for a reusable, accessible toggle switch,
+ * often used for boolean settings.
+ */
+
+/* 1. Main Container (the <label> element)
+---------------------------------- */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+  vertical-align: middle;
+}
+
+/* 2. Hidden Checkbox Input
+   This handles the state and accessibility.
+---------------------------------- */
+.toggle-switch__input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* 3. The Slider (the visual track and thumb)
+---------------------------------- */
+.toggle-switch__slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-surface-2);
+  border-radius: 28px; /* Makes it pill-shaped */
+  transition: background-color var(--transition-speed);
+}
+
+/* The thumb/knob that moves */
+.toggle-switch__slider::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #fff; /* Thumb is always white */
+  border-radius: 50%;
+  transition: transform var(--transition-speed);
+}
+
+/* 4. Checked/On State
+---------------------------------- */
+.toggle-switch__input:checked + .toggle-switch__slider {
+  background-color: var(--color-primary);
+}
+
+.toggle-switch__input:checked + .toggle-switch__slider::before {
+  transform: translateX(22px);
+}
+
+/* Accessibility: Focus state */
+.toggle-switch__input:focus-visible + .toggle-switch__slider {
+  box-shadow: 0 0 0 3px var(--color-background), 0 0 0 5px var(--color-primary);
+}

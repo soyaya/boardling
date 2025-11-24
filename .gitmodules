@@ -1,0 +1,6 @@
+[submodule "backend/zaino"]
+	path = backend/zaino
+	url = https://github.com/zingolabs/zaino.git
+[submodule "backend/zebra"]
+	path = backend/zebra
+	url = https://github.com/ZcashFoundation/zebra.git

@@ -1,0 +1,84 @@
+/*
+ * Top Navigation Bar Component Styles
+ * --------------------------------------------------
+ * Styles for the main application header, including logo, search, and user actions.
+ * It is designed to be placed in the `header` grid area of the main app layout.
+ */
+
+.top-nav {
+  grid-area: header; /* Assigns to the 'header' area in the main app layout */
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-lg);
+  background-color: var(--color-surface-1);
+  border-bottom: 1px solid var(--color-border);
+  gap: var(--space-lg);
+}
+
+/* 1. Logo / Branding Section
+---------------------------------- */
+.top-nav__logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-1);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* 2. Search Bar Section
+---------------------------------- */
+.top-nav__search {
+  flex-grow: 1;
+  max-width: 500px;
+  position: relative;
+}
+
+.top-nav__search-icon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-md);
+  transform: translateY(-50%);
+  color: var(--color-text-2);
+  pointer-events: none; /* Allows clicking through the icon to the input */
+}
+
+.top-nav__search-input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md) var(--space-sm) 40px; /* Left padding for icon */
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  color: var(--color-text-1);
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.top-nav__search-input::placeholder {
+  color: var(--color-text-2);
+}
+
+.top-nav__search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-shadow-primary);
+}
+
+/* 3. User Actions Section (Notifications, Profile)
+---------------------------------- */
+.top-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  cursor: pointer;
+  transition: border-color var(--transition-speed);
+}
+
+.profile-avatar:hover {
+  border-color: var(--color-primary);
+}

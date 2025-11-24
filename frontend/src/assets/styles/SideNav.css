@@ -1,0 +1,69 @@
+/*
+ * Side Navigation Bar Component Styles
+ * --------------------------------------------------
+ * Styles for the primary vertical navigation sidebar.
+ * It is designed to be placed in the `sidebar` grid area of the main app layout.
+ */
+
+.side-nav {
+  grid-area: sidebar; /* Assigns to the 'sidebar' area in the main app layout */
+  background-color: var(--color-surface-1);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg) 0;
+}
+
+/* Navigation List */
+.side-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+/* Individual Navigation Link */
+.side-nav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 12px var(--space-lg);
+  margin: 0 var(--space-md);
+  border-radius: var(--border-radius);
+  color: var(--color-text-2);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-speed), background-color var(--transition-speed);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.side-nav__icon {
+  /* Assuming you use 20x20px icons */
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0; /* Prevents the icon from shrinking */
+}
+
+.side-nav__link-text {
+  flex-grow: 1;
+}
+
+/* Hover State */
+.side-nav__link:hover {
+  color: var(--color-text-1);
+  background-color: var(--color-surface-2);
+}
+
+/* Active State (for the current page) */
+.side-nav__link.active {
+  color: var(--color-text-on-primary);
+  background-color: var(--color-primary);
+}
+
+.side-nav__link.active .side-nav__icon {
+  color: var(--color-text-on-primary);
+}

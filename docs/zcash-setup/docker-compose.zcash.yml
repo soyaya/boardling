@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  zebra:
+    image: zfnd/zebra:latest
+    container_name: zcash-zebra
+    ports:
+      - "8232:8232"  # RPC port
+      - "8233:8233"  # P2P port
+    volumes:
+      - zebra_data:/var/lib/zebra
+      - ./zebra.toml:/etc/zebra/zebra.toml:ro
+    environment:
+      - ZEBRA_CONF_DIR=/etc/zebra
+    restart: unless-stopped
+    networks:
+      - zcash-network
+
+  # Optional: Zaino indexer
+  zaino:
+    image: zingolabs/zaino:latest
+    container_name: zcash-zaino
+    ports:
+      - "8234:8233"  # JSON-RPC port (different from Zebra)
+      - "9067:9067"  # gRPC port for light clients
+    volumes:
+      - ./zaino.toml:/etc/zaino/zaino.toml:ro
+    depends_on:
+      - zebra
+    environment:
+      - ZAINO_CONF_DIR=/etc/zaino
+    restart: unless-stopped
+    networks:
+      - zcash-network
+
+volumes:
+  zebra_data:
+
+networks:
+  zcash-network:
+    driver: bridge

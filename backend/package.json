@@ -1,0 +1,141 @@
+{
+  "name": "zcash-paywall-sdk",
+  "version": "1.0.0",
+  "description": "Production-ready Zcash paywall SDK for Node.js with subscription and one-time payment support",
+  "main": "dist/ZcashPaywall.cjs",
+  "module": "src/ZcashPaywall.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/ZcashPaywall.js",
+      "require": "./dist/ZcashPaywall.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./utils": {
+      "import": "./src/sdk/utils/index.js",
+      "types": "./dist/utils/index.d.ts"
+    },
+    "./testing": {
+      "import": "./src/sdk/testing/index.js",
+      "types": "./dist/testing/index.d.ts"
+    }
+  },
+  "files": [
+    "src/sdk/",
+    "src/ZcashPaywall.js",
+    "dist/",
+    "schema.sql",
+    "docs/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "build": "npm run build:cjs && npm run build:types",
+    "build:cjs": "babel src/ZcashPaywall.js src/sdk --out-dir dist --out-file-extension .cjs",
+    "build:types": "tsc --emitDeclarationOnly --outDir dist",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "prepublishOnly": "npm run build && npm test",
+    "setup": "./scripts/setup.sh",
+    "pre-publish": "./scripts/pre-publish-check.sh",
+    "publish-sdk": "./scripts/publish.sh",
+    "pack-test": "npm pack && echo 'Created package tarball for testing'"
+  },
+  "keywords": [
+    "zcash",
+    "zec",
+    "broadling",
+    "paywall",
+    "cryptocurrency",
+    "payments",
+    "blockchain",
+    "subscription",
+    "nodejs",
+    "sdk",
+    "api",
+    "privacy"
+  ],
+  "author": {
+    "name": "Broadling Paywall Team",
+    "email": "elgravicodesh@gmail.com",
+    "url": "https://github.com/limitlxx/zcash-paywall-sdk"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/limitlxx/zcash-paywall-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/limitlxx/zcash-paywall-sdk/issues"
+  },
+  "homepage": "https://github.com/limitlxx/zcash-paywall-sdk#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "node-fetch": "^3.3.2"
+  },
+  "peerDependencies": {
+    "express": "^4.19.0"
+  },
+  "optionalDependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "pg": "^8.12.0",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.23.4",
+    "@babel/core": "^7.23.6",
+    "@babel/preset-env": "^7.23.6",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.5",
+    "@types/pg": "^8.10.9",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.2",
+    "typescript": "^5.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/src/sdk/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/sdk/**/*.js",
+      "!src/sdk/**/*.test.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 70,
+        "functions": 70,
+        "lines": 70,
+        "statements": 70
+      }
+    }
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "18"
+          },
+          "modules": "cjs"
+        }
+      ]
+    ]
+  }
+}

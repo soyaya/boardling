@@ -1,0 +1,82 @@
+/*
+ * Notification / Toast Component Styles
+ * --------------------------------------------------
+ * This file contains styles for a reusable notification component that appears
+ * on the screen to provide feedback or alerts to the user.
+ */
+
+/* 1. Notification Container
+   This holds all the toasts and positions them on the screen.
+---------------------------------- */
+.notification-container {
+  position: fixed;
+  top: calc(var(--header-height) + var(--space-lg));
+  right: var(--space-lg);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  width: 100%;
+  max-width: 380px;
+}
+
+/* 2. Individual Notification
+---------------------------------- */
+.notification {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-left-width: 4px; /* Accent border for the variant color */
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  color: var(--color-text-1);
+  pointer-events: auto;
+  animation: slideInFromRight 0.3s ease-out forwards;
+}
+
+/* 3. Notification Content
+---------------------------------- */
+.notification__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 1.2rem;
+}
+
+.notification__content {
+  flex-grow: 1;
+}
+
+.notification__title {
+  font-weight: 600;
+  margin-bottom: var(--space-xs);
+}
+
+.notification__message {
+  font-size: 0.9rem;
+  color: var(--color-text-2);
+  line-height: 1.4;
+}
+
+/* Close button can reuse .icon-button from TopNav.css */
+.notification__close {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* 4. Notification Variants
+---------------------------------- */
+.notification--info {
+  border-left-color: var(--color-primary);
+}
+.notification--success {
+  border-left-color: var(--color-success);
+}
+.notification--warning {
+  border-left-color: var(--color-warning);
+}
+.notification--error {
+  border-left-color: var(--color-error);
+}

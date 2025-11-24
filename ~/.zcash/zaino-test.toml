@@ -1,0 +1,7 @@
+[zebra]
+rpc_endpoint = "http://127.0.0.1:8232"
+rpc_user = "__cookie__"
+rpc_password = "1dEg+v6xgiGeHe6wdE4LytfsHvigKYKaJg46XNh5AzA="
+
+[indexer]
+db_path = "/home/limitlxx/.zcash/zaino-data"

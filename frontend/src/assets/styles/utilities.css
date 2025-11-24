@@ -1,0 +1,207 @@
+/*
+ * CSS Utility Classes
+ * --------------------------------------------------
+ * This file contains small, reusable helper classes for layout,
+ * accessibility, and other common patterns.
+ */
+
+/* 1. Accessibility
+---------------------------------- */
+
+/*
+ * Hide element visually but keep it accessible to screen readers.
+ */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px; /* Avoids content shifts */
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap; /* For inline elements */
+  border: 0;
+}
+
+/* 2. Layout
+---------------------------------- */
+
+/*
+ * A simple container to center its direct child/children.
+ */
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* 3. Components
+---------------------------------- */
+
+/*
+ * Reusable icon button for actions like close, notifications, etc.
+ */
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border: none;
+  color: var(--color-text-2);
+  cursor: pointer;
+  padding: var(--space-sm);
+  border-radius: 50%;
+  transition: color var(--transition-speed), background-color var(--transition-speed);
+}
+.icon-button:hover {
+  color: var(--color-text-1);
+  background-color: var(--color-surface-2);
+}
+
+/* 4. Spacing
+   Uses a convention like: {property}{direction}-{size}
+   - property: m (margin), p (padding)
+   - direction: t (top), b (bottom), l (left), r (right), x (horizontal), y (vertical)
+   - size: xs, sm, md, lg, xl
+---------------------------------- */
+
+.mt-xs { margin-top: var(--space-xs) !important; }
+.mt-sm { margin-top: var(--space-sm) !important; }
+.mt-md { margin-top: var(--space-md) !important; }
+.mt-lg { margin-top: var(--space-lg) !important; }
+.mt-xl { margin-top: var(--space-xl) !important; }
+
+.mb-xs { margin-bottom: var(--space-xs) !important; }
+.mb-sm { margin-bottom: var(--space-sm) !important; }
+.mb-md { margin-bottom: var(--space-md) !important; }
+.mb-lg { margin-bottom: var(--space-lg) !important; }
+.mb-xl { margin-bottom: var(--space-xl) !important; }
+
+.my-md {
+  margin-top: var(--space-md) !important;
+  margin-bottom: var(--space-md) !important;
+}
+
+.pt-xs { padding-top: var(--space-xs) !important; }
+.pt-sm { padding-top: var(--space-sm) !important; }
+.pt-md { padding-top: var(--space-md) !important; }
+.pt-lg { padding-top: var(--space-lg) !important; }
+.pt-xl { padding-top: var(--space-xl) !important; }
+
+.pb-xs { padding-bottom: var(--space-xs) !important; }
+.pb-sm { padding-bottom: var(--space-sm) !important; }
+.pb-md { padding-bottom: var(--space-md) !important; }
+.pb-lg { padding-bottom: var(--space-lg) !important; }
+.pb-xl { padding-bottom: var(--space-xl) !important; }
+
+/* 5. Typography
+---------------------------------- */
+
+/* Text Alignment */
+.text-left { text-align: left !important; }
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
+
+/* Font Weight */
+.fw-normal { font-weight: 400 !important; }
+.fw-semibold { font-weight: 600 !important; }
+.fw-bold { font-weight: 700 !important; }
+
+/* Text Color */
+.text-primary { color: var(--color-primary) !important; }
+.text-success { color: var(--color-success) !important; }
+.text-error { color: var(--color-error) !important; }
+.text-warning { color: var(--color-warning) !important; }
+.text-body { color: var(--color-text-1) !important; }
+.text-muted { color: var(--color-text-2) !important; }
+
+/* 6. Display
+---------------------------------- */
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+.d-flex { display: flex !important; }
+.d-grid { display: grid !important; }
+
+/* 7. Flexbox
+---------------------------------- */
+
+/* Flex Direction */
+.flex-row { flex-direction: row !important; }
+.flex-column { flex-direction: column !important; }
+
+/* Justify Content */
+.justify-start { justify-content: flex-start !important; }
+.justify-end { justify-content: flex-end !important; }
+.justify-center { justify-content: center !important; }
+.justify-between { justify-content: space-between !important; }
+.justify-around { justify-content: space-around !important; }
+
+/* Align Items */
+.align-start { align-items: flex-start !important; }
+.align-end { align-items: flex-end !important; }
+.align-center { align-items: center !important; }
+.align-stretch { align-items: stretch !important; }
+.align-baseline { align-items: baseline !important; }
+
+/* 8. Responsive
+   Uses a mobile-first approach with min-width media queries.
+   Convention: {property}-{breakpoint}-{value}
+   Example: .d-md-none -> display: none on medium screens and up.
+---------------------------------- */
+
+/* Small devices (sm) and up */
+@media (min-width: var(--breakpoint-sm)) {
+  .d-sm-none { display: none !important; }
+  .d-sm-block { display: block !important; }
+  .d-sm-flex { display: flex !important; }
+
+  .p-sm-0 { padding: 0 !important; }
+  .p-sm-md { padding: var(--space-md) !important; }
+  .pt-sm-lg { padding-top: var(--space-lg) !important; }
+  .m-sm-0 { margin: 0 !important; }
+  .mb-sm-lg { margin-bottom: var(--space-lg) !important; }
+
+  .text-sm-left { text-align: left !important; }
+  .text-sm-center { text-align: center !important; }
+  .text-sm-right { text-align: right !important; }
+}
+
+/* Medium devices (md) and up */
+@media (min-width: var(--breakpoint-md)) {
+  .d-md-none { display: none !important; }
+  .d-md-block { display: block !important; }
+  .d-md-flex { display: flex !important; }
+
+  .p-md-lg { padding: var(--space-lg) !important; }
+  .px-md-lg { padding-left: var(--space-lg) !important; padding-right: var(--space-lg) !important; }
+  .mt-md-0 { margin-top: 0 !important; }
+
+  .text-md-left { text-align: left !important; }
+  .text-md-center { text-align: center !important; }
+  .text-md-right { text-align: right !important; }
+}
+
+/* Large devices (lg) and up */
+@media (min-width: var(--breakpoint-lg)) {
+  .d-lg-none { display: none !important; }
+  .d-lg-block { display: block !important; }
+  .d-lg-flex { display: flex !important; }
+
+  .p-lg-xl { padding: var(--space-xl) !important; }
+  .py-lg-xl { padding-top: var(--space-xl) !important; padding-bottom: var(--space-xl) !important; }
+
+  .text-lg-left { text-align: left !important; }
+  .text-lg-center { text-align: center !important; }
+  .text-lg-right { text-align: right !important; }
+}
+
+/* 9. Position
+---------------------------------- */
+.position-static { position: static !important; }
+.position-relative { position: relative !important; }
+.position-absolute { position: absolute !important; }
+.position-fixed { position: fixed !important; }
+.position-sticky { position: sticky !important; }

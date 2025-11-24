@@ -1,0 +1,22 @@
+# Zaino Configuration for Unified RPC Access
+[rpc]
+# JSON-RPC server settings
+listen_addr = "0.0.0.0:8233"
+
+[grpc]
+# gRPC server for light clients
+listen_addr = "0.0.0.0:9067"
+
+[zebra]
+# Connection to Zebra node
+rpc_endpoint = "http://zebra:8232"
+
+[indexer]
+# Database settings
+db_path = "/var/lib/zaino/db"
+
+[network]
+network = "mainnet"
+
+[tracing]
+filter = "info"

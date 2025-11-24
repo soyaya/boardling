@@ -1,0 +1,17 @@
+[source.crates-io]
+registry = "https://github.com/rust-lang/crates.io-index"
+
+[net]
+retry = 10
+git-fetch-with-cli = true
+
+[http]
+timeout = 300
+low_speed_limit = 10
+cainfo = "/etc/ssl/certs/ca-certificates.crt"
+
+[env]
+ROCKSDB_SYS_STATIC = "1"
+CC = "clang"
+CXX = "clang++"
+CXXFLAGS = "-include cstdint"

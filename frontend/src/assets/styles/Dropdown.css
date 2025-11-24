@@ -1,0 +1,80 @@
+/*
+ * Dropdown Menu Component Styles
+ * --------------------------------------------------
+ * This file contains styles for a reusable dropdown menu, often used for
+ * user profiles, settings, or action lists.
+ */
+
+/* 1. Dropdown Container
+   This wrapper handles the positioning context.
+---------------------------------- */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* 2. Dropdown Menu Panel
+   The list of items that appears.
+---------------------------------- */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + var(--space-sm)); /* Position below the toggle with a small gap */
+  right: 0; /* Align to the right of the container */
+  z-index: 1000;
+
+  min-width: 220px;
+  padding: var(--space-sm) 0;
+  list-style: none;
+
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+
+  /* Animation: Hidden by default */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: opacity var(--transition-speed), transform var(--transition-speed);
+  transition-timing-function: ease-in-out;
+}
+
+/* State to show the menu */
+.dropdown.open > .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* 3. Dropdown Items and Links
+---------------------------------- */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding: 10px var(--space-lg);
+  font-size: 0.95rem;
+  color: var(--color-text-1);
+  text-decoration: none;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+  outline: none;
+}
+
+/* 4. Dropdown Divider
+---------------------------------- */
+.dropdown-divider {
+  height: 1px;
+  margin: var(--space-sm) 0;
+  background-color: var(--color-border);
+  border: 0;
+}

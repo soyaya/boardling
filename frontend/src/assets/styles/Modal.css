@@ -1,0 +1,99 @@
+/*
+ * Modal/Dialog Component Styles
+ * --------------------------------------------------
+ * This file contains styles for a reusable modal dialog component, including
+ * the overlay, header, body, and footer sections.
+ */
+
+/* 1. Modal Overlay (Backdrop)
+---------------------------------- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1050;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+
+  /* Animation: Hidden by default */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-speed), visibility var(--transition-speed);
+}
+
+/* 2. Modal Dialog (The main panel)
+---------------------------------- */
+.modal-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  width: 90%;
+  max-width: 600px;
+
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+
+  /* Animation */
+  transform: scale(0.95);
+  transition: transform var(--transition-speed);
+}
+
+/* 3. Open State
+---------------------------------- */
+.modal-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-overlay.open .modal-dialog {
+  transform: scale(1);
+}
+
+/* 4. Modal Sections
+---------------------------------- */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-1);
+}
+
+.modal-close {
+  /* Reusing the icon-button style from TopNav.css is a good practice */
+  /* You can add this class to the close button */
+}
+
+.modal-body {
+  padding: var(--space-lg);
+  overflow-y: auto; /* Allows content to scroll if it's too long */
+  flex-grow: 1;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+  background-color: var(--color-background);
+  border-bottom-left-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+}

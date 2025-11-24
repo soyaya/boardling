@@ -1,0 +1,78 @@
+/*
+ * Pagination Component Styles
+ * --------------------------------------------------
+ * This file contains styles for a reusable pagination component,
+ * used for navigating through pages of data in tables or lists.
+ */
+
+/* 1. Pagination Container
+---------------------------------- */
+.pagination {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-lg) 0;
+}
+
+/* 2. Pagination List
+---------------------------------- */
+.pagination__list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* 3. Pagination Item & Link
+---------------------------------- */
+.pagination__link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 var(--space-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-2);
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color var(--transition-speed), background-color var(--transition-speed), border-color var(--transition-speed);
+}
+
+.pagination__link:hover {
+  color: var(--color-text-1);
+  background-color: var(--color-surface-2);
+  border-color: var(--color-surface-2);
+}
+
+/* 4. States (Active, Disabled, Ellipsis)
+---------------------------------- */
+
+/* Active state for the current page */
+.pagination__item.active .pagination__link {
+  color: var(--color-text-on-primary);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Disabled state for prev/next links */
+.pagination__item.disabled .pagination__link {
+  color: var(--color-border);
+  background-color: transparent;
+  border-color: transparent;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Ellipsis item */
+.pagination__item--ellipsis {
+  color: var(--color-text-2);
+  padding: 0 var(--space-sm);
+}

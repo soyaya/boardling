@@ -1,0 +1,16 @@
+{
+  "rpc": {
+    "zebra": "http://127.0.0.1:9067"
+  },
+  "db": {
+    "host": "localhost",
+    "port": 5432,
+    "database": "zcash_indexer",
+    "user": "zcash_user",
+    "password": "yourpassword"
+  },
+  "indexer": {
+    "batch_size": 10,
+    "reorg_safety": 6
+  }
+}

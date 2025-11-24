@@ -1,0 +1,33 @@
+/*
+ * Dashboard Page Layout
+ * --------------------------------------------------
+ * This file contains the grid layout styles for the main dashboard page,
+ * arranging the various Card components.
+ */
+
+.dashboard-grid {
+  display: grid;
+  /* 
+   * Creates a responsive grid. It will fit as many columns as possible that are
+   * at least 350px wide. Any extra space is distributed equally.
+   * On smaller screens, columns will wrap automatically.
+   */
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--space-lg); /* Uses the spacing variable from global.css */
+  padding: var(--space-lg); /* Adds some space around the grid */
+}
+
+/* 
+ * Modifier classes to allow cards to span multiple columns or rows,
+ * matching your wireframe design.
+ */
+.grid-item--span-2 {
+  grid-column: span 2;
+}
+
+.grid-item--span-3 {
+  grid-column: span 3;
+}
+
+/* You can also add row spans if needed */
+/* .grid-item--span-row-2 { grid-row: span 2; } */

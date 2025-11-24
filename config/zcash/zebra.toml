@@ -1,0 +1,27 @@
+# Zebra Configuration for RPC Access
+[consensus]
+checkpoint_sync = true
+
+[network]
+network = "Mainnet"
+listen_addr = "0.0.0.0:8233"
+
+[rpc]
+# Enable RPC server
+listen_addr = "0.0.0.0:8232"
+# For production, restrict to localhost: "127.0.0.1:8232"
+
+# Optional: Enable authentication (recommended for production)
+# rpc_user = "yourrpcuser"
+# rpc_password = "yourlongpassword"
+
+[state]
+cache_dir = "/var/lib/zebra"
+
+[tracing]
+# Set log level (error, warn, info, debug, trace)
+filter = "info"
+
+[sync]
+# Faster initial sync
+lookahead_limit = 2000

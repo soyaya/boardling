@@ -1,0 +1,25 @@
+/*
+ * Global Animations
+ * --------------------------------------------------
+ * This file contains all the @keyframes used throughout the application
+ * to keep them centralized and organized.
+ */
+
+/* For the Spinner component */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* For the Notification component */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

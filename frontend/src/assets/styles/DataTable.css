@@ -1,0 +1,54 @@
+/*
+ * Data Table Component Styles
+ * --------------------------------------------------
+ * Styles for a reusable data table, suitable for displaying transactional
+ * or analytical data within a Card component.
+ */
+
+/*
+ * The table should be placed inside a container that allows for horizontal
+ * scrolling on smaller screens to prevent breaking the layout.
+ */
+.data-table-container {
+  width: 100%;
+  overflow-x: auto;
+  /* Adds a subtle fade effect if the table is scrollable */
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10px, black 98%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 10px, black 98%, transparent);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+/* Table Header */
+.data-table thead th {
+  padding: var(--space-md) var(--space-lg);
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--color-border);
+  white-space: nowrap; /* Prevents headers from wrapping */
+}
+
+/* Table Body */
+.data-table tbody td {
+  padding: var(--space-md) var(--space-lg);
+  color: var(--color-text-1);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap; /* Prevents cell content from wrapping */
+}
+
+/* Hover state for rows for better visual feedback */
+.data-table tbody tr:hover {
+  background-color: var(--color-surface-2);
+}
+
+/* Remove border from the last row for a cleaner look */
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}

@@ -1,0 +1,61 @@
+/*
+ * Design Tokens
+ * --------------------------------------------------
+ * This file contains all the global CSS custom properties (variables)
+ * for the application's design system.
+ */
+
+/* Default theme (dark) */
+:root {
+  /* Brand & Semantic Colors */
+  --color-primary: #0d6efd; /* A standard blue for interactive elements */
+  --color-success: #198754; /* Green for positive indicators (e.g., retention > 50%) */
+  --color-error: #dc3545;   /* Red for negative indicators (e.g., churn, alerts) */
+  --color-warning: #ffc107; /* Yellow for warnings */
+
+  /* Theme-aware Colors */
+  --color-background: #1a1a1e;      /* Deepest background */
+  --color-surface-1: #2c2c34;       /* Cards, sidebars, modals */
+  --color-surface-2: #4a4a58;       /* Hover states, secondary buttons */
+  --color-border: #4a4a58;          /* Borders and dividers */
+  --color-text-1: #e9ecef;          /* High-emphasis text */
+  --color-text-2: #adb5bd;          /* Low-emphasis text, placeholders */
+  --color-text-on-primary: #ffffff; /* Text on primary-colored elements */
+
+  /* Shadow */
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --color-background: #f8f9fa;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #e9ecef;
+  --color-border: #dee2e6;
+  --color-text-1: #212529;
+  --color-text-2: #6c757d;
+  --color-text-on-primary: #ffffff;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+  /* Layout & Sizing */
+  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --header-height: 60px;
+  --sidebar-width: 240px;
+  --border-radius: 8px;
+  --focus-shadow-primary: 0 0 0 3px rgba(13, 110, 253, 0.25);
+  --transition-speed: 0.2s ease-in-out;
+
+  /* Spacing Unit */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Breakpoints */
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+}

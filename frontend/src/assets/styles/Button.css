@@ -1,0 +1,65 @@
+/*
+ * Button Component Styles
+ * --------------------------------------------------
+ * This file contains styles for a reusable button component with different variants.
+ */
+
+/* 1. Base Button Style
+---------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 10px var(--space-md);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius);
+  transition: color var(--transition-speed), background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-shadow-primary);
+}
+
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 2. Primary Button Variant (for main actions)
+---------------------------------- */
+.btn--primary {
+  color: var(--color-text-on-primary);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.btn--primary:hover {
+  background-color: #0b5ed7; /* A slightly darker shade of var(--color-primary) */
+  border-color: #0a58ca; /* A slightly darker shade of var(--color-primary) */
+}
+
+/* 3. Secondary Button Variant (for less prominent actions)
+---------------------------------- */
+.btn--secondary {
+  color: var(--color-text-1);
+  background-color: var(--color-surface-2);
+  border-color: var(--color-surface-2);
+}
+
+.btn--secondary:hover {
+  background-color: #5c5c6b; /* A slightly lighter shade of var(--color-dark-300) */
+  border-color: #5c5c6b; /* A slightly lighter shade of var(--color-dark-300) */
+}

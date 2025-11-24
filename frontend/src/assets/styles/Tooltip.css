@@ -1,0 +1,60 @@
+/*
+ * Tooltip Component Styles
+ * --------------------------------------------------
+ * This file contains styles for a reusable tooltip component that appears
+ * on hover or focus to provide additional information.
+ */
+
+/* 1. Tooltip Container
+   This wrapper provides the positioning context.
+---------------------------------- */
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* 2. The Tooltip Bubble
+---------------------------------- */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px); /* Position above the element with a gap */
+  left: 50%;
+  transform: translateX(-50%);
+
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-surface-2);
+  color: var(--color-text-1);
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 1070;
+
+  /* Hidden by default */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--transition-speed), transform var(--transition-speed);
+}
+
+/* 3. The Arrow (created with a pseudo-element)
+---------------------------------- */
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--color-surface-2) transparent transparent transparent;
+}
+
+/* 4. Show the Tooltip on Hover/Focus
+---------------------------------- */
+.tooltip-container:hover .tooltip,
+.tooltip-container:focus-within .tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-4px); /* Slight upward movement on show */
+}

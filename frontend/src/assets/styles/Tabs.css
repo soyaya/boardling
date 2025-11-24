@@ -1,0 +1,56 @@
+/*
+ * Tabs Component Styles
+ * --------------------------------------------------
+ * This file contains styles for a reusable tab navigation component,
+ * used for switching between different content views within a page or card.
+ */
+
+/* 1. Tabs Container
+---------------------------------- */
+.tabs {
+  width: 100%;
+}
+
+/* 2. Tab List (the navigation part)
+---------------------------------- */
+.tabs__list {
+  display: flex;
+  gap: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-lg);
+}
+
+/* 3. Individual Tab Button
+---------------------------------- */
+.tabs__button {
+  padding: 10px var(--space-md);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-2);
+  background-color: transparent;
+  border: none;
+  border-bottom: 3px solid transparent; /* Placeholder for active state */
+  cursor: pointer;
+  margin-bottom: -1px; /* Aligns the bottom border with the list's border */
+  transition: color var(--transition-speed), border-color var(--transition-speed);
+}
+
+.tabs__button:hover {
+  color: var(--color-text-1);
+}
+
+/* Active state for the selected tab */
+.tabs__button.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+/* 4. Tab Content Panels
+---------------------------------- */
+.tabs__panel {
+  display: none; /* Hide panels by default */
+}
+
+.tabs__panel.active {
+  display: block; /* Show the active panel */
+}
