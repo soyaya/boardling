@@ -1,16 +1,91 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Mail, Lock } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { ArrowRight, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { useAuth, useAuthActions } from '../store/useAuthStore';
 
 const SignIn: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, loading, error } = useAuth();
+  const { login, clearError } = useAuthActions();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Get the intended destination from location state
+  const from = location.state?.from?.pathname || '/dashboard';
+  
+  // Check for registration success message and pre-fill email
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+    }
+    if (location.state?.email) {
+      setEmail(location.state.email);
+    }
+  }, [location.state]);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
+
+  // Clear errors when component mounts or form data changes
+  useEffect(() => {
+    clearError();
+    setFormErrors({});
+  }, [clearError, email, password]);
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    if (!password) {
+      errors.password = 'Password is required';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, authenticate here
-    navigate('/dashboard');
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await login({ email, password });
+      
+      if (response.success) {
+        // Login successful, navigation will be handled by useEffect
+        // The user will be redirected to their intended destination
+      }
+      // Error handling is managed by the auth store
+    } catch (error) {
+      console.error('Login error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    // Navigate to forgot password page (to be implemented)
+    console.log('Forgot password clicked');
   };
 
   return (
@@ -56,6 +131,28 @@ const SignIn: React.FC = () => {
             </p>
           </div>
 
+          {/* Success Message (from registration) */}
+          {successMessage && !error && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-green-700 font-medium">Registration Successful</p>
+                <p className="text-sm text-green-600">{successMessage}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error Display */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-red-700 font-medium">Sign In Failed</p>
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -67,11 +164,19 @@ const SignIn: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    formErrors.email 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-200 focus:ring-black'
+                  }`}
                   placeholder="you@example.com"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
+              {formErrors.email && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+              )}
             </div>
 
             <div>
@@ -84,32 +189,58 @@ const SignIn: React.FC = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    formErrors.password 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-200 focus:ring-black'
+                  }`}
                   placeholder="••••••••"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
+              {formErrors.password && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
+              )}
             </div>
 
             <div className="flex items-center justify-between">
               <label className="flex items-center">
                 <input
                   type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="w-4 h-4 border-gray-300 rounded focus:ring-black"
+                  disabled={isSubmitting}
                 />
                 <span className="ml-2 text-sm text-gray-600">Remember me</span>
               </label>
-              <button type="button" className="text-sm text-black font-medium hover:underline">
+              <button 
+                type="button" 
+                onClick={handleForgotPassword}
+                className="text-sm text-black font-medium hover:underline"
+                disabled={isSubmitting}
+              >
                 Forgot password?
               </button>
             </div>
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+              disabled={isSubmitting || loading}
+              className="w-full flex items-center justify-center px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="mr-2">Sign in</span>
-              <ArrowRight className="w-5 h-5" />
+              {isSubmitting || loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  <span>Signing in...</span>
+                </>
+              ) : (
+                <>
+                  <span className="mr-2">Sign in</span>
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
             </button>
           </form>
 

@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Mail, Lock, User, Building } from 'lucide-react';
+import { ArrowRight, Mail, Lock, User, Building, AlertCircle, Loader2 } from 'lucide-react';
+import { useAuth, useAuthActions } from '../store/useAuthStore';
 
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, loading, error } = useAuth();
+  const { register, clearError } = useAuthActions();
+  
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -11,11 +15,83 @@ const SignUp: React.FC = () => {
     password: '',
     confirmPassword: '',
   });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // Clear errors when component mounts or form data changes
+  useEffect(() => {
+    clearError();
+    setFormErrors({});
+  }, [clearError, formData]);
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Name validation
+    if (!formData.name.trim()) {
+      errors.name = 'Full name is required';
+    }
+
+    // Email validation
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    // Password validation
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      errors.password = 'Password must be at least 8 characters';
+    }
+
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, create account here
-    navigate('/onboarding');
+    
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await register(formData);
+      
+      if (response.success) {
+        // Registration successful, redirect to sign in
+        // Backend doesn't return token on registration
+        navigate('/signin', { 
+          state: { 
+            message: 'Registration successful! Please sign in with your credentials.',
+            email: formData.email 
+          }
+        });
+      }
+      // Error handling is managed by the auth store
+    } catch (error) {
+      console.error('Registration error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -76,6 +152,17 @@ const SignUp: React.FC = () => {
             </p>
           </div>
 
+          {/* Error Display */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-red-700 font-medium">Registration Failed</p>
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -87,11 +174,19 @@ const SignUp: React.FC = () => {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    formErrors.name 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-200 focus:ring-black'
+                  }`}
                   placeholder="John Doe"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
+              {formErrors.name && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+              )}
             </div>
 
             <div>
@@ -104,11 +199,19 @@ const SignUp: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    formErrors.email 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-200 focus:ring-black'
+                  }`}
                   placeholder="you@company.com"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
+              {formErrors.email && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+              )}
             </div>
 
             <div>
@@ -123,7 +226,7 @@ const SignUp: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, company: e.target.value })}
                   className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                   placeholder="Acme Corp"
-                  required
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -138,13 +241,22 @@ const SignUp: React.FC = () => {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    formErrors.password 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-200 focus:ring-black'
+                  }`}
                   placeholder="••••••••"
                   required
                   minLength={8}
+                  disabled={isSubmitting}
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+              {formErrors.password ? (
+                <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
+              ) : (
+                <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+              )}
             </div>
 
             <div>
@@ -157,11 +269,19 @@ const SignUp: React.FC = () => {
                   type="password"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+                    formErrors.confirmPassword 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-200 focus:ring-black'
+                  }`}
                   placeholder="••••••••"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
+              {formErrors.confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">{formErrors.confirmPassword}</p>
+              )}
             </div>
 
             <div className="flex items-start">
@@ -184,10 +304,20 @@ const SignUp: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
+              disabled={isSubmitting || loading}
+              className="w-full flex items-center justify-center px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="mr-2">Create account</span>
-              <ArrowRight className="w-5 h-5" />
+              {isSubmitting || loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  <span>Creating account...</span>
+                </>
+              ) : (
+                <>
+                  <span className="mr-2">Create account</span>
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
             </button>
           </form>
 

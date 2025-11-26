@@ -1,15 +1,12 @@
-import { MongoClient } from "mongodb";
-import dotenv from "dotenv";
-dotenv.config();
+import pkg from 'pg';
+const { Pool } = pkg;
 
-const mongoUri = process.env.MONGO_URI;
-const dbName = process.env.MONGO_DB;
+const pool = new Pool({
+  host: process.env.DB_HOST || 'localhost',
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME || 'zcash_indexer',
+  user: process.env.DB_USER || 'zcash_user',
+  password: process.env.DB_PASSWORD || 'yourpassword',
+});
 
-const client = new MongoClient(mongoUri);
-
-await client.connect();
-const db = client.db(dbName);
-
-console.log("[DB] Connected to MongoDB:", dbName);
-
-export default db;
+export default pool;

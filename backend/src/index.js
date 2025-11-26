@@ -7,8 +7,24 @@ import dotenv from 'dotenv';
 // Import modularized routes
 import routes from './routes/index.js';
 
+// Import authentication routes from the simple server
+import authRoutes from './routes/auth.js';
+
+// Import additional routes from simple server
+import projectRoutes from './routes/project.js';
+import walletRoutes from './routes/wallet.js';
+import analyticsRoutes from './routes/analytics.js';
+
+// Import error handling middleware
+import { errorHandlerMiddleware } from './middleware/errorHandler.js';
+
 // Import config
 import { pool, config } from './config/appConfig.js';
+
+// Test database connection on startup
+pool.query('SELECT 1')
+  .then(() => console.log('✅ Database connected successfully'))
+  .catch(err => console.log('⚠️  Database connection failed:', err.message));
 
 // Export SDK for npm package usage
 export { ZcashPaywall } from './sdk/index.js';
@@ -30,9 +46,9 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration (updated for frontend integration)
 app.use(cors({
-  origin: config.corsOrigin,
+  origin: config.corsOrigin || 'http://localhost:5173', // Default to Vite dev server
   credentials: true,
 }));
 
@@ -46,10 +62,21 @@ app.use((req, res, next) => {
   next();
 });
 
-// Use modularized routes
+// Authentication routes (from simple server)
+app.use('/auth', authRoutes);
+
+// Additional routes from simple server
+app.use('/api/projects', projectRoutes);
+app.use('/api', walletRoutes);
+app.use('/api', analyticsRoutes);
+
+// Use modularized routes (Zcash Paywall SDK routes)
 app.use('/', routes);
 
-// Global error handler
+// Error handling middleware (from simple server and global handler)
+app.use(errorHandlerMiddleware);
+
+// Global error handler (fallback)
 app.use((error, req, res, next) => {
   console.error('Unhandled error:', error);
   res.status(500).json({ 
@@ -71,10 +98,14 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// Start server
-const PORT = config.port;
+// Start unified server
+const PORT = config.port || 3001;
 app.listen(PORT, () => {
-  console.log(`🚀 Zcash Paywall SDK running on http://localhost:${PORT}`);
+  console.log(`🚀 Unified Boardling Backend running on http://localhost:${PORT}`);
+  console.log(`🔐 Authentication: http://localhost:${PORT}/auth/*`);
+  console.log(`📊 Analytics: http://localhost:${PORT}/api/analytics/*`);
+  console.log(`💼 Projects: http://localhost:${PORT}/api/projects/*`);
+  console.log(`💰 Payments: http://localhost:${PORT}/api/invoice/*`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`📖 API docs: http://localhost:${PORT}/api`);
   console.log(`🔧 Environment: ${config.nodeEnv}`);
