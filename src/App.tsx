@@ -1,7 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useTokenValidation } from './hooks/useAuthError';
+import { useAuthContext } from './contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import LoadingScreen from './components/LoadingScreen';
 import MainLayout from './layouts/MainLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Onboarding from './pages/Onboarding';
@@ -25,8 +28,25 @@ import PricingPage from './pages/Pricing';
 
 // App content component with token validation
 const AppContent: React.FC = () => {
+  const { isAuthenticated, loading } = useAuthContext();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   // Enable automatic token validation
   useTokenValidation();
+
+  // Redirect authenticated users away from auth pages
+  useEffect(() => {
+    const authPages = ['/signin', '/signup'];
+    if (isAuthenticated && authPages.includes(location.pathname)) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, location.pathname, navigate]);
+
+  // Show loading screen during initial auth check
+  if (loading && location.pathname !== '/' && location.pathname !== '/signin' && location.pathname !== '/signup') {
+    return <LoadingScreen />;
+  }
 
   return (
     <Routes>

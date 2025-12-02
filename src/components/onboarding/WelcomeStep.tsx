@@ -2,11 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useOnboardingStore } from '../../store/useOnboardingStore';
 
 const WelcomeStep: React.FC = () => {
   const navigate = useNavigate();
-  const setStep = useOnboardingStore((state) => state.setStep);
 
   return (
     <motion.div

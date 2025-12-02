@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthState>()(
         // Initial state
         user: null,
         isAuthenticated: false,
-        loading: false,
+        loading: true, // Start with loading true to check auth on mount
         error: null,
 
         // Login action

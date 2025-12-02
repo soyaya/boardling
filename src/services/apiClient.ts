@@ -215,9 +215,17 @@ export const api = {
   // Analytics
   analytics: {
     getDashboard: (projectId: string) => apiClient.get(`/api/analytics/dashboard/${projectId}`),
+    getAdoption: (projectId: string) => apiClient.get(`/api/analytics/adoption/${projectId}`),
+    getRetention: (projectId: string) => apiClient.get(`/api/analytics/retention/${projectId}`),
+    getProductivity: (projectId: string) => apiClient.get(`/api/analytics/productivity/${projectId}`),
+    getShielded: (projectId: string) => apiClient.get(`/api/analytics/shielded/${projectId}`),
+    getSegments: (projectId: string) => apiClient.get(`/api/analytics/segments/${projectId}`),
+    getHealth: (projectId: string) => apiClient.get(`/api/analytics/health/${projectId}`),
+    getComparison: (projectId: string) => apiClient.get(`/api/analytics/comparison/${projectId}`),
+    exportReport: (projectId: string, format: 'json' | 'csv') => apiClient.get(`/api/analytics/dashboard/${projectId}/export?format=${format}`),
+    // Legacy endpoints
     getCohorts: (projectId: string) => apiClient.get(`/api/analytics/cohorts/${projectId}`),
     getFunnel: (projectId: string) => apiClient.get(`/api/analytics/funnel/${projectId}`),
-    getRetention: (projectId: string) => apiClient.get(`/api/analytics/retention/${projectId}`),
   },
 
   // Payments

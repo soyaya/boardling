@@ -7,25 +7,34 @@ import {
   deleteWalletController,
   getUserWalletsController,
   getWalletsByTypeController,
-  getActiveWalletsController
+  getActiveWalletsController,
+  validateAddressController
 } from '../controllers/wallet.js';
-import { authenticateToken } from '../middleware/users.js';
+import { authenticateJWT } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// All wallet routes require authentication
-router.use(authenticateToken);
+// All wallet routes require JWT authentication
+router.use(authenticateJWT);
 
-// User-level wallet routes
-router.get('/user/wallets', getUserWalletsController); // Get all wallets for authenticated user
+// Wallet validation endpoint (no project required)
+// POST /api/wallets/validate - Validate Zcash address
+router.post('/validate', validateAddressController);
 
-// Project-specific wallet routes
-router.post('/projects/:projectId/wallets', createWalletController);           // CREATE wallet for project
-router.get('/projects/:projectId/wallets', getProjectWalletsController);      // GET all wallets for project
-router.get('/projects/:projectId/wallets/active', getActiveWalletsController); // GET active wallets for project
-router.get('/projects/:projectId/wallets/type', getWalletsByTypeController);   // GET wallets by type for project
-router.get('/projects/:projectId/wallets/:walletId', getWalletController);     // GET single wallet
-router.put('/projects/:projectId/wallets/:walletId', updateWalletController);  // UPDATE wallet
-router.delete('/projects/:projectId/wallets/:walletId', deleteWalletController); // DELETE wallet
+// Simplified wallet routes (as per task requirements)
+// POST /api/wallets - Add wallet to project (requires project_id in body)
+router.post('/', createWalletController);
+
+// GET /api/wallets - List project wallets (requires project_id query param)
+router.get('/', getProjectWalletsController);
+
+// GET /api/wallets/:id - Get wallet details
+router.get('/:walletId', getWalletController);
+
+// PUT /api/wallets/:id - Update wallet privacy mode
+router.put('/:walletId', updateWalletController);
+
+// DELETE /api/wallets/:id - Remove wallet
+router.delete('/:walletId', deleteWalletController);
 
 export default router;

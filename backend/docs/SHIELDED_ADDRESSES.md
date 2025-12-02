@@ -5,6 +5,7 @@ This document describes the shielded address generation routes that work with Za
 ## Overview
 
 The shielded address API provides endpoints for:
+
 - Generating new shielded addresses (Sapling and Unified)
 - Validating shielded address formats
 - Retrieving address information (balance, transactions)
@@ -26,6 +27,7 @@ The shielded address API provides endpoints for:
 Check if Zaino indexer is running and available.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -48,23 +50,26 @@ Check if Zaino indexer is running and available.
 Generate a new shielded address using Zaino.
 
 **Request Body:**
+
 ```json
 {
-  "type": "auto",              // "sapling", "unified", or "auto"
-  "save_to_wallet": false,     // Optional: save to user wallet
-  "user_id": "uuid",           // Required if save_to_wallet=true
-  "wallet_name": "My Wallet"   // Optional wallet name
+  "type": "auto", // "sapling", "unified", or "auto"
+  "save_to_wallet": false, // Optional: save to user wallet
+  "user_id": "uuid", // Required if save_to_wallet=true
+  "wallet_name": "My Wallet" // Optional wallet name
 }
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
   "address": "zs1z7rejlpsa98s2rrrfkwmaxu8rgs7ddhqkumla0x5vlmqz0d4jjgvm5d2yk74ugn3c4ksqhvqzqe",
   "type": "sapling",
   "generated_at": "2025-11-21T00:30:00.000Z",
-  "wallet": {                  // Only if save_to_wallet=true
+  "wallet": {
+    // Only if save_to_wallet=true
     "id": "wallet-uuid",
     "name": "My Wallet",
     "saved_at": "2025-11-21T00:30:00.000Z"
@@ -79,6 +84,7 @@ Generate a new shielded address using Zaino.
 Validate a shielded address format and check with RPC if available.
 
 **Request Body:**
+
 ```json
 {
   "address": "zs1z7rejlpsa98s2rrrfkwmaxu8rgs7ddhqkumla0x5vlmqz0d4jjgvm5d2yk74ugn3c4ksqhvqzqe"
@@ -86,6 +92,7 @@ Validate a shielded address format and check with RPC if available.
 ```
 
 **Response:**
+
 ```json
 {
   "valid": true,
@@ -106,6 +113,7 @@ Validate a shielded address format and check with RPC if available.
 Get balance and transaction information for a shielded address.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -132,16 +140,18 @@ Get balance and transaction information for a shielded address.
 Generate multiple shielded addresses in one request.
 
 **Request Body:**
+
 ```json
 {
-  "count": 5,                  // 1-10 addresses
-  "type": "auto",              // "sapling", "unified", or "auto"
-  "user_id": "uuid",           // Optional: for wallet saving
-  "save_to_wallet": false      // Optional: save all to wallet
+  "count": 5, // 1-10 addresses
+  "type": "auto", // "sapling", "unified", or "auto"
+  "user_id": "uuid", // Optional: for wallet saving
+  "save_to_wallet": false // Optional: save all to wallet
 }
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -152,10 +162,10 @@ Generate multiple shielded addresses in one request.
       "address": "zs1...",
       "type": "sapling",
       "generated_at": "2025-11-21T00:30:00.000Z",
-      "wallet_id": "uuid"      // Only if saved to wallet
+      "wallet_id": "uuid" // Only if saved to wallet
     }
   ],
-  "errors": []                 // Any generation errors
+  "errors": [] // Any generation errors
 }
 ```
 
@@ -168,6 +178,7 @@ Generate multiple shielded addresses in one request.
 Create a new shielded wallet for a user.
 
 **Request Body:**
+
 ```json
 {
   "user_id": "uuid",
@@ -196,10 +207,11 @@ Get detailed information about a specific wallet including transactions.
 Create an invoice using a shielded address.
 
 **Request Body:**
+
 ```json
 {
   "user_id": "uuid",
-  "wallet_id": "uuid",         // Optional: use existing wallet
+  "wallet_id": "uuid", // Optional: use existing wallet
   "amount_zec": 0.01,
   "item_id": "product_123",
   "memo": "Payment for service"
@@ -213,6 +225,7 @@ Create an invoice using a shielded address.
 Check if a shielded invoice has been paid.
 
 **Request Body:**
+
 ```json
 {
   "invoice_id": "uuid"
@@ -222,7 +235,9 @@ Check if a shielded invoice has been paid.
 ## Error Handling
 
 ### Service Unavailable (503)
+
 When Zaino indexer is not running:
+
 ```json
 {
   "error": "Shielded address service unavailable",
@@ -232,6 +247,7 @@ When Zaino indexer is not running:
 ```
 
 ### Address Generation Failed (500)
+
 ```json
 {
   "error": "Failed to generate shielded address",
@@ -240,6 +256,7 @@ When Zaino indexer is not running:
 ```
 
 ### Invalid Address Type (400)
+
 ```json
 {
   "error": "Invalid address type",
@@ -250,39 +267,46 @@ When Zaino indexer is not running:
 ## Address Types
 
 ### Sapling Addresses
+
 - Format: `zs1...` (78 characters)
 - Privacy: Full transaction privacy
 - Compatibility: Supported since Sapling activation
 
-### Unified Addresses  
+### Unified Addresses
+
 - Format: `u1...` (variable length)
 - Privacy: Multi-pool support
 - Compatibility: Supported since NU5 activation
 
 ### Auto Mode
+
 - Tries Sapling first, falls back to Unified
 - Recommended for maximum compatibility
 
 ## Integration Examples
 
 ### JavaScript/Node.js
-```javascript
-import axios from 'axios';
 
-const API_BASE = 'http://localhost:3000';
+```javascript
+import axios from "axios";
+
+const API_BASE = "http://localhost:3000";
 
 // Generate a shielded address
 async function generateShieldedAddress() {
   try {
-    const response = await axios.post(`${API_BASE}/api/shielded/address/generate`, {
-      type: 'auto'
-    });
-    
-    console.log('Generated address:', response.data.address);
+    const response = await axios.post(
+      `${API_BASE}/api/shielded/address/generate`,
+      {
+        type: "auto",
+      }
+    );
+
+    console.log("Generated address:", response.data.address);
     return response.data.address;
   } catch (error) {
     if (error.response?.status === 503) {
-      console.log('Zaino not available, using transparent addresses');
+      console.log("Zaino not available, using transparent addresses");
       // Fallback to transparent address generation
     }
     throw error;
@@ -291,15 +315,19 @@ async function generateShieldedAddress() {
 
 // Validate an address
 async function validateAddress(address) {
-  const response = await axios.post(`${API_BASE}/api/shielded/address/validate`, {
-    address: address
-  });
-  
+  const response = await axios.post(
+    `${API_BASE}/api/shielded/address/validate`,
+    {
+      address: address,
+    }
+  );
+
   return response.data.valid;
 }
 ```
 
 ### cURL Examples
+
 ```bash
 # Check Zaino status
 curl -X GET http://localhost:3000/api/shielded/status
@@ -329,16 +357,19 @@ curl -X GET "http://localhost:3000/api/shielded/address/zs1z7rejlpsa98s2rrrfkwma
 ## Troubleshooting
 
 ### Zaino Connection Issues
+
 - Check if Zaino is running: `curl http://127.0.0.1:8234`
 - Verify Zebra node is synced and accessible to Zaino
 - Check Zaino logs for RPC errors
 
 ### Address Generation Failures
+
 - Ensure Zaino has wallet functionality enabled
 - Check if the requested address type is supported
 - Verify network compatibility (mainnet vs testnet)
 
 ### Database Errors
+
 - Run shielded table migrations: `003_shielded_tables.sql`
 - Check database permissions for new tables
 - Verify foreign key constraints are satisfied

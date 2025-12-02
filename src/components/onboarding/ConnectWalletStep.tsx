@@ -1,17 +1,92 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Wallet } from 'lucide-react';
+import { Briefcase, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
 import { useOnboardingStore } from '../../store/useOnboardingStore';
+import { useProjectStore } from '../../store/useProjectStore';
+import type { ProjectCategory } from '../../services/projectService';
 
 const ConnectWalletStep: React.FC = () => {
-  const { setStep, setWalletConnected } = useOnboardingStore();
+  const { projectData, updateProjectData, setCreatedProjectId, nextStep } = useOnboardingStore();
+  const { createProject } = useProjectStore();
+  
+  const [formData, setFormData] = useState({
+    name: projectData.name || '',
+    description: projectData.description || '',
+    category: projectData.category || 'other' as ProjectCategory,
+    website_url: projectData.website_url || '',
+  });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  const handleConnect = () => {
-    // Simulate wallet connection
-    setTimeout(() => {
-      setWalletConnected(true);
-      setStep(3);
-    }, 1000);
+  const categories: { value: ProjectCategory; label: string }[] = [
+    { value: 'defi', label: 'DeFi' },
+    { value: 'social_fi', label: 'Social Fi' },
+    { value: 'gamefi', label: 'GameFi' },
+    { value: 'nft', label: 'NFT' },
+    { value: 'infrastructure', label: 'Infrastructure' },
+    { value: 'governance', label: 'Governance' },
+    { value: 'dao', label: 'DAO' },
+    { value: 'other', label: 'Other' },
+  ];
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      errors.name = 'Project name is required';
+    } else if (formData.name.length > 255) {
+      errors.name = 'Project name must be less than 255 characters';
+    }
+
+    if (formData.website_url && formData.website_url.trim()) {
+      try {
+        new URL(formData.website_url);
+      } catch {
+        errors.website_url = 'Please enter a valid URL';
+      }
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Update onboarding store with project data
+      updateProjectData(formData);
+
+      // Create project via API
+      const project = await createProject({
+        name: formData.name,
+        description: formData.description || undefined,
+        category: formData.category,
+        website_url: formData.website_url || undefined,
+      });
+
+      if (project) {
+        // Store project ID and move to next step
+        setCreatedProjectId(project.id);
+        nextStep();
+      } else {
+        setError('Failed to create project. Please try again.');
+      }
+    } catch (err) {
+      console.error('Project creation error:', err);
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -19,22 +94,129 @@ const ConnectWalletStep: React.FC = () => {
       initial={{ opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -50 }}
-      className="text-center max-w-md mx-auto"
+      className="max-w-2xl mx-auto"
     >
-      <h2 className="text-3xl font-bold text-gray-900 mb-6">Connect your wallet</h2>
-      <p className="text-gray-500 mb-8">
-        Connect your wallet to verify ownership and start tracking your Zcash analytics.
-      </p>
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-900 mb-4">Create Your Project</h2>
+        <p className="text-gray-600 text-lg">
+          Tell us about your Zcash project to get started with analytics
+        </p>
+      </div>
 
-      <button
-        onClick={handleConnect}
-        className="w-full flex items-center justify-center px-6 py-4 border border-gray-200 rounded-xl hover:border-black hover:bg-gray-50 transition-all group"
-      >
-        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-4 group-hover:bg-white group-hover:shadow-sm transition-all">
-          <Wallet className="w-6 h-6 text-gray-700" />
+      {/* Error Display */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm text-red-700 font-medium">Project Creation Failed</p>
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
         </div>
-        <span className="text-lg font-medium text-gray-900">Connect Wallet</span>
-      </button>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+        {/* Project Name */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Project Name *
+          </label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+              formErrors.name 
+                ? 'border-red-300 focus:ring-red-500' 
+                : 'border-gray-200 focus:ring-black'
+            }`}
+            placeholder="My Awesome Zcash Project"
+            required
+            disabled={isSubmitting}
+          />
+          {formErrors.name && (
+            <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+          )}
+        </div>
+
+        {/* Project Description */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Description
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none"
+            placeholder="Brief description of your project..."
+            rows={3}
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* Project Category */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Category *
+          </label>
+          <select
+            value={formData.category}
+            onChange={(e) => setFormData({ ...formData, category: e.target.value as ProjectCategory })}
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            required
+            disabled={isSubmitting}
+          >
+            {categories.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Website URL */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Website URL (Optional)
+          </label>
+          <input
+            type="url"
+            value={formData.website_url}
+            onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent ${
+              formErrors.website_url 
+                ? 'border-red-300 focus:ring-red-500' 
+                : 'border-gray-200 focus:ring-black'
+            }`}
+            placeholder="https://myproject.com"
+            disabled={isSubmitting}
+          />
+          {formErrors.website_url && (
+            <p className="mt-1 text-sm text-red-600">{formErrors.website_url}</p>
+          )}
+        </div>
+
+        {/* Submit Button */}
+        <div className="pt-4">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center px-6 py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                <span>Creating project...</span>
+              </>
+            ) : (
+              <>
+                <Briefcase className="w-5 h-5 mr-2" />
+                <span>Create Project</span>
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </>
+            )}
+          </button>
+        </div>
+      </form>
     </motion.div>
   );
 };

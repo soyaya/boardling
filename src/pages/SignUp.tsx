@@ -25,11 +25,19 @@ const SignUp: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Clear errors when component mounts or form data changes
+  // Clear errors when component mounts
   useEffect(() => {
     clearError();
-    setFormErrors({});
-  }, [clearError, formData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+  
+  // Clear form errors when user starts typing
+  useEffect(() => {
+    if (Object.keys(formErrors).length > 0) {
+      setFormErrors({});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData]); // Only clear form errors when form data changes
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
@@ -154,11 +162,63 @@ const SignUp: React.FC = () => {
 
           {/* Error Display */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm text-red-700 font-medium">Registration Failed</p>
-                <p className="text-sm text-red-600">{error}</p>
+            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg shadow-sm animate-slideDown">
+              <div className="flex items-start space-x-3">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="w-6 h-6 text-red-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-semibold text-red-800 mb-1">
+                    {error.toLowerCase().includes('email') && error.toLowerCase().includes('already') 
+                      ? 'Email Already Registered' 
+                      : 'Registration Failed'}
+                  </h3>
+                  <p className="text-sm text-red-700 leading-relaxed">{error}</p>
+                  
+                  {/* Helpful actions based on error type */}
+                  {error.toLowerCase().includes('email') && error.toLowerCase().includes('already') && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button
+                        onClick={() => navigate('/signin', { state: { email: formData.email } })}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md transition-colors"
+                      >
+                        Sign in instead
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFormData({ ...formData, email: '' });
+                          clearError();
+                        }}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-white hover:bg-red-50 border border-red-200 rounded-md transition-colors"
+                      >
+                        Try different email
+                      </button>
+                    </div>
+                  )}
+                  
+                  {error.toLowerCase().includes('network') && (
+                    <div className="mt-3">
+                      <button
+                        onClick={() => {
+                          clearError();
+                          handleSubmit(new Event('submit') as any);
+                        }}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md transition-colors"
+                      >
+                        Retry registration
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={clearError}
+                  className="flex-shrink-0 text-red-400 hover:text-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded"
+                  aria-label="Dismiss error"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             </div>
           )}

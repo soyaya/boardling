@@ -6,6 +6,10 @@
 import express from "express";
 
 // Import individual route modules
+import authRouter from "./auth.js";
+import projectRouter from "./project.js";
+import walletRouter from "./wallet.js";
+import subscriptionRouter from "./subscription.js";
 import invoiceRouter from "./invoice.js";
 import withdrawRouter from "./withdraw.js";
 import adminRouter from "./admin.js";
@@ -17,6 +21,7 @@ import zcashDevtoolRouter from "./zcash-devtool.js";
 import alternativesRouter from "./alternatives.js";
 import unifiedRouter from "./unified.js";
 import unifiedInvoiceRouter from "./unified-invoice.js";
+import analyticsRouter from "./analytics.js";
 
 // Import authentication middleware
 import {
@@ -119,6 +124,144 @@ router.get("/api", (req, res) => {
     },
     sdk_config: "/api/config",
     endpoints: {
+      auth: {
+        "POST /auth/register": {
+          auth: "none",
+          description: "Register new user with email and password"
+        },
+        "POST /auth/login": {
+          auth: "none",
+          description: "Login with email and password, returns JWT token"
+        },
+        "POST /auth/logout": {
+          auth: "required",
+          description: "Logout (client-side token removal)"
+        },
+        "POST /auth/change-password": {
+          auth: "required",
+          description: "Change user password"
+        },
+        "POST /auth/forgot-password": {
+          auth: "none",
+          description: "Request password reset token"
+        },
+        "POST /auth/reset-password": {
+          auth: "none",
+          description: "Reset password with token"
+        },
+        "GET /auth/verify-email": {
+          auth: "none",
+          description: "Verify email address"
+        },
+        "GET /auth/me": {
+          auth: "required",
+          description: "Get current user information"
+        }
+      },
+      projects: {
+        "POST /api/projects": {
+          auth: "required",
+          description: "Create new project"
+        },
+        "GET /api/projects": {
+          auth: "required",
+          description: "List all user projects"
+        },
+        "GET /api/projects/:id": {
+          auth: "required",
+          description: "Get project details by ID"
+        },
+        "PUT /api/projects/:id": {
+          auth: "required",
+          description: "Update project"
+        },
+        "DELETE /api/projects/:id": {
+          auth: "required",
+          description: "Delete project"
+        }
+      },
+      wallets: {
+        "POST /api/wallets": {
+          auth: "required",
+          description: "Add wallet to project (requires project_id in body)"
+        },
+        "GET /api/wallets": {
+          auth: "required",
+          description: "List project wallets (requires project_id query param)"
+        },
+        "GET /api/wallets/:id": {
+          auth: "required",
+          description: "Get wallet details by ID"
+        },
+        "PUT /api/wallets/:id": {
+          auth: "required",
+          description: "Update wallet privacy mode and settings"
+        },
+        "DELETE /api/wallets/:id": {
+          auth: "required",
+          description: "Remove wallet from project"
+        },
+        "POST /api/wallets/validate": {
+          auth: "required",
+          description: "Validate Zcash address format and type"
+        }
+      },
+      subscriptions: {
+        "GET /api/subscriptions/status": {
+          auth: "required",
+          description: "Get current subscription status and details"
+        },
+        "POST /api/subscriptions/upgrade": {
+          auth: "required",
+          description: "Upgrade to premium subscription"
+        },
+        "POST /api/subscriptions/cancel": {
+          auth: "required",
+          description: "Cancel subscription (downgrade to free)"
+        },
+        "GET /api/subscriptions/history": {
+          auth: "required",
+          description: "Get subscription payment history"
+        },
+        "GET /api/subscriptions/check-premium": {
+          auth: "required",
+          description: "Check if user has premium access"
+        }
+      },
+      analytics: {
+        "GET /api/analytics/dashboard/:projectId": {
+          auth: "required",
+          description: "Get comprehensive dashboard metrics with caching and privacy filtering"
+        },
+        "GET /api/analytics/adoption/:projectId": {
+          auth: "required",
+          description: "Get adoption funnel analytics showing wallet progression through stages"
+        },
+        "GET /api/analytics/retention/:projectId": {
+          auth: "required",
+          description: "Get retention cohort analytics with heatmap and trend data"
+        },
+        "GET /api/analytics/productivity/:projectId": {
+          auth: "required",
+          description: "Get productivity scores and task completion metrics"
+        },
+        "GET /api/analytics/shielded/:projectId": {
+          auth: "required",
+          description: "Get shielded transaction analytics and privacy metrics"
+        },
+        "GET /api/analytics/segments/:projectId": {
+          auth: "required",
+          description: "Get wallet segmentation data grouped by behavior patterns"
+        },
+        "GET /api/analytics/health/:projectId": {
+          auth: "required",
+          description: "Get overall project health indicators and scores"
+        },
+        "GET /api/analytics/comparison/:projectId": {
+          auth: "required",
+          description: "Get competitive benchmarking data (requires public/monetizable privacy mode)"
+        }
+      },
       users: {
         "POST /api/users/create": {
           auth: "optional",
@@ -408,6 +551,26 @@ router.get("/api", (req, res) => {
 /**
  * API Routes with Authentication
  */
+
+// Authentication routes (public endpoints)
+router.use("/auth", authRouter);
+
+// Project routes (require JWT authentication)
+router.use("/api/projects", projectRouter);
+
+// Wallet routes (require JWT authentication)
+router.use("/api/wallets", walletRouter);
+
+// User wallet routes (require JWT authentication)
+import { getUserWalletsController } from '../controllers/wallet.js';
+import { authenticateJWT } from '../middleware/auth.js';
+router.get("/api/user/wallets", authenticateJWT, getUserWalletsController);
+
+// Subscription routes (require JWT authentication)
+router.use("/api/subscriptions", subscriptionRouter);
+
+// Analytics routes (require JWT authentication)
+router.use("/api", analyticsRouter);
 
 // API Key creation (public endpoint)
 router.post("/api/keys/create", async (req, res) => {

@@ -4,6 +4,9 @@ import axios from "axios";
 import { Pool } from "pg";
 import https from "https";
 
+// Use global queryClient set by indexer
+const getQueryClient = () => global.queryClient;
+
 export async function saveOutputs(tx) {
   if (!tx.vout) return;
 
@@ -41,7 +44,7 @@ export async function saveOutputs(tx) {
         : null;
 
     // Save output row
-    await queryClient.query(
+    await getQueryClient().query(
       `INSERT INTO outputs
       (txid, vout_index, address, value, script_pub_key, scriptpubkey)
       VALUES ($1,$2,$3,$4,$5,$6)
@@ -58,7 +61,7 @@ export async function saveOutputs(tx) {
 
     // Save address if present
     if (address) {
-      await queryClient.query(
+      await getQueryClient().query(
         `INSERT INTO addresses (address)
          VALUES ($1)
          ON CONFLICT (address) DO NOTHING`,

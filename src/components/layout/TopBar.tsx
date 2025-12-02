@@ -1,11 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, HelpCircle, LogOut, Settings, User } from 'lucide-react';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 const TopBar: React.FC = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuthContext();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user?.name) return 'U';
+    const names = user.name.split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[1][0]}`.toUpperCase();
+    }
+    return user.name.substring(0, 2).toUpperCase();
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      setShowProfileMenu(false);
+      
+      // Call logout from auth store
+      await logout();
+      
+      // Redirect to sign in page
+      navigate('/signin', { replace: true });
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still redirect even if logout fails
+      navigate('/signin', { replace: true });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 sticky top-0 z-10">
@@ -33,7 +84,7 @@ const TopBar: React.FC = () => {
         </button>
 
         {/* Notifications Button */}
-        <div className="relative">
+        <div className="relative" ref={notificationsRef}>
           <button
             onClick={() => {
               setShowNotifications(!showNotifications);
@@ -60,7 +111,10 @@ const TopBar: React.FC = () => {
                 ].map((notif, i) => (
                   <button
                     key={i}
-                    onClick={() => navigate('/notifications')}
+                    onClick={() => {
+                      navigate('/notifications');
+                      setShowNotifications(false);
+                    }}
                     className="w-full px-4 py-3 hover:bg-gray-50 transition-colors text-left"
                   >
                     <p className="text-sm font-medium text-gray-900">{notif.title}</p>
@@ -70,7 +124,10 @@ const TopBar: React.FC = () => {
               </div>
               <div className="px-4 py-2 border-t border-gray-100">
                 <button
-                  onClick={() => navigate('/notifications')}
+                  onClick={() => {
+                    navigate('/notifications');
+                    setShowNotifications(false);
+                  }}
                   className="text-xs text-black font-medium hover:underline"
                 >
                   View all notifications
@@ -83,7 +140,7 @@ const TopBar: React.FC = () => {
         <div className="h-8 w-px bg-gray-200 mx-2"></div>
 
         {/* Profile Button */}
-        <div className="relative">
+        <div className="relative" ref={profileMenuRef}>
           <button
             onClick={() => {
               setShowProfileMenu(!showProfileMenu);
@@ -93,7 +150,7 @@ const TopBar: React.FC = () => {
             title="Profile Menu"
           >
             <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm font-medium">
-              JD
+              {getUserInitials()}
             </div>
           </button>
 
@@ -101,8 +158,8 @@ const TopBar: React.FC = () => {
           {showProfileMenu && (
             <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-50">
               <div className="px-4 py-2 border-b border-gray-100">
-                <p className="text-sm font-medium text-gray-900">John Doe</p>
-                <p className="text-xs text-gray-500">john@example.com</p>
+                <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
+                <p className="text-xs text-gray-500">{user?.email || 'user@example.com'}</p>
               </div>
               <button
                 onClick={() => {
@@ -126,11 +183,12 @@ const TopBar: React.FC = () => {
               </button>
               <div className="border-t border-gray-100 my-2"></div>
               <button
-                onClick={() => navigate('/')}
-                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
+                {isLoggingOut ? 'Signing Out...' : 'Sign Out'}
               </button>
             </div>
           )}

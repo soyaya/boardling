@@ -62,6 +62,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
+});
+
 // Authentication routes (from simple server)
 app.use('/auth', authRoutes);
 

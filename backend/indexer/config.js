@@ -3,6 +3,7 @@ dotenv.config();
 
 const config = {
   rpc: {
+    // Prioritize local Zebra over remote RPC
     url: process.env.ZEBRA_HOST,
     user: process.env.ZEBRA_RPC_USER,
     pass: process.env.ZEBRA_RPC_PASS,

@@ -53,7 +53,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initAuth();
-  }, [actions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Listen for storage changes (for multi-tab synchronization)
   useEffect(() => {
@@ -70,7 +71,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [actions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only set up listener once
 
   const contextValue: AuthContextType = {
     ...auth,

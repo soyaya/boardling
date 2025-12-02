@@ -1,9 +1,13 @@
 /**
- * Authentication middleware for API key validation
+ * Authentication middleware for API key and JWT validation
  */
 
 import { pool } from '../config/appConfig.js';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+
+// JWT secret from environment
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 /**
  * Generate a new API key
@@ -146,4 +150,85 @@ export async function optionalApiKey(req, res, next) {
 
   // If auth header is provided, validate it
   return authenticateApiKey(req, res, next);
+}
+
+/**
+ * JWT authentication middleware
+ * Validates JWT tokens for user authentication
+ */
+export async function authenticateJWT(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({
+        error: 'AUTH_REQUIRED',
+        message: 'Authentication required. Please provide a valid JWT token.'
+      });
+    }
+
+    const [scheme, token] = authHeader.split(' ');
+    
+    if (scheme !== 'Bearer' || !token) {
+      return res.status(401).json({
+        error: 'AUTH_INVALID',
+        message: 'Invalid Authorization header format. Use: Authorization: Bearer <token>'
+      });
+    }
+
+    // Verify JWT token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          error: 'AUTH_EXPIRED',
+          message: 'Token has expired. Please login again.'
+        });
+      }
+      return res.status(401).json({
+        error: 'AUTH_INVALID',
+        message: 'Invalid token'
+      });
+    }
+
+    // Verify user still exists
+    const result = await pool.query(
+      'SELECT id, name, email, created_at FROM users WHERE id = $1',
+      [decoded.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        error: 'AUTH_INVALID',
+        message: 'User not found'
+      });
+    }
+
+    // Add user info to request
+    req.user = result.rows[0];
+
+    next();
+  } catch (error) {
+    console.error('JWT authentication error:', error);
+    res.status(500).json({
+      error: 'INTERNAL_ERROR',
+      message: 'Authentication error'
+    });
+  }
+}
+
+/**
+ * Optional JWT middleware (doesn't fail if no token provided)
+ */
+export async function optionalJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader) {
+    return next();
+  }
+
+  // If auth header is provided, validate it
+  return authenticateJWT(req, res, next);
 }

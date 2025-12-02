@@ -2,24 +2,30 @@ import dotenv from "dotenv";
 import axios from "axios";
 import { Pool } from "pg";
 import https from "https";
+import config from "./config.js";
 import {addressStats, updateAddressStats, formatOutput } from './formatOutputs.js'
 import { saveOutputs } from "./saveOutputs.js";
 
-
-
 dotenv.config();
 
-const rpcUrl = process.env.ZEC_RPC_URL;
-const pool = new Pool({ connectionString: process.env.DB_URL });
+const rpcUrl = config.rpc.url;
+const pool = new Pool({ connectionString: config.db.connectionString });
 const agent = new https.Agent({ family: 4 });
 
 // ------------------- RPC helper with retries -------------------
 async function rpc(method, params = [], retries = 5) {
   try {
+    const auth = Buffer.from(`${config.rpc.user}:${config.rpc.pass}`).toString('base64');
     const res = await axios.post(
       rpcUrl,
       { jsonrpc: "1.0", id: "indexer", method, params },
-      { httpsAgent: agent, timeout: 30000 }
+      { 
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000 
+      }
     );
     if (res.data.error) throw new Error(res.data.error.message);
     return res.data.result;
@@ -112,7 +118,8 @@ async function saveTx(tx, block) {
     }
 
     // Save outputs
-    await saveOutputs(client, tx);
+    global.queryClient = client;
+    await saveOutputs(tx);
 
     await client.query("COMMIT");
   } catch (err) {

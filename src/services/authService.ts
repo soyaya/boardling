@@ -26,7 +26,10 @@ export interface User {
   email: string;
   company?: string;
   subscription_status?: 'free' | 'premium' | 'enterprise';
+  subscription_expires_at?: string | null;
+  onboarding_completed?: boolean;
   onboarding_step?: 'registration' | 'project_creation' | 'wallet_addition' | 'analytics_access' | 'completed';
+  balance_zec?: number;
   created_at: string;
   updated_at: string;
 }
@@ -91,25 +94,29 @@ class AuthService {
         };
       }
 
-      // Backend returns: { id, name, email }
+      // Backend returns: { success, message, token, user: { id, name, email, created_at } }
+      // Store the token if provided
+      if (data.token) {
+        this.setToken(data.token);
+      }
+
       // Create a user object from the response
       const user: User = {
-        id: data.id,
-        name: data.name,
-        email: data.email,
-        created_at: new Date().toISOString(),
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        created_at: data.user.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
       // Store user data
       this.setUser(user);
 
-      // Note: Backend doesn't return a token on registration
-      // User needs to login after registration
       return {
         success: true,
+        token: data.token,
         user: user,
-        message: 'Registration successful. Please sign in.'
+        message: data.message || 'Registration successful'
       };
 
     } catch (error) {
@@ -144,37 +151,49 @@ class AuthService {
         };
       }
 
-      // Backend returns: { token }
+      // Backend returns: { success, message, token, user: { id, name, email, created_at } }
       // Store the token
       if (data.token) {
         this.setToken(data.token);
         
-        // Decode token to get user info
-        try {
-          const payload = JSON.parse(atob(data.token.split('.')[1]));
-          const user: User = {
-            id: payload.id,
-            email: payload.email,
-            name: payload.name || payload.email.split('@')[0], // Fallback to email username
-            created_at: new Date().toISOString(),
+        // Use user data from response if available, otherwise decode from token
+        let user: User;
+        if (data.user) {
+          user = {
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.name,
+            created_at: data.user.created_at || new Date().toISOString(),
             updated_at: new Date().toISOString()
           };
-          this.setUser(user);
-          
-          return {
-            success: true,
-            token: data.token,
-            user: user,
-            message: 'Login successful'
-          };
-        } catch (decodeError) {
-          console.error('Error decoding token:', decodeError);
-          return {
-            success: true,
-            token: data.token,
-            message: 'Login successful'
-          };
+        } else {
+          // Fallback: decode token to get user info
+          try {
+            const payload = JSON.parse(atob(data.token.split('.')[1]));
+            user = {
+              id: payload.id,
+              email: payload.email,
+              name: payload.name || payload.email.split('@')[0],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            };
+          } catch (decodeError) {
+            console.error('Error decoding token:', decodeError);
+            return {
+              success: false,
+              error: 'Invalid token format received from server'
+            };
+          }
         }
+        
+        this.setUser(user);
+        
+        return {
+          success: true,
+          token: data.token,
+          user: user,
+          message: data.message || 'Login successful'
+        };
       }
 
       return {
@@ -435,6 +454,86 @@ class AuthService {
     }
 
     return this.getUser();
+  }
+
+  /**
+   * Fetch current user from API (for session restoration)
+   */
+  async fetchCurrentUser(): Promise<User | null> {
+    try {
+      const token = this.getToken();
+      if (!token) {
+        return null;
+      }
+
+      const response = await fetch(`${this.baseURL}/auth/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        // Token is invalid or expired
+        this.clearToken();
+        this.clearUser();
+        return null;
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.user) {
+        const user: User = {
+          id: data.user.id,
+          name: data.user.name,
+          email: data.user.email,
+          created_at: data.user.created_at,
+          updated_at: data.user.updated_at
+        };
+        
+        this.setUser(user);
+        return user;
+      }
+
+      return null;
+
+    } catch (error) {
+      console.error('Fetch current user error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Validate token expiration
+   */
+  isTokenExpired(): boolean {
+    const token = this.getToken();
+    if (!token) return true;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+      
+      return payload.exp ? payload.exp < currentTime : false;
+    } catch (error) {
+      return true;
+    }
+  }
+
+  /**
+   * Get token expiration time
+   */
+  getTokenExpiration(): Date | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp ? new Date(payload.exp * 1000) : null;
+    } catch (error) {
+      return null;
+    }
   }
 }
 

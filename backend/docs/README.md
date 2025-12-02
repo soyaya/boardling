@@ -46,23 +46,43 @@ npm start
 ## Environment Variables
 
 ```env
-# Server
+# Server Configuration
 PORT=3000
+NODE_ENV=production
 
-# Database
+# Database Configuration
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=youruser
-DB_PASS=yourpass
-DB_NAME=zcashpaywall
+DB_USER=postgres
+DB_PASS=admin
+DB_NAME=broadlypaywall
 
-# Zcash RPC
-ZCASH_RPC_URL=http://127.0.0.1:8232
-ZCASH_RPC_USER=yourrpcuser
-ZCASH_RPC_PASS=yourlongpassword
 
-# Platform Treasury (for fee collection)
-PLATFORM_TREASURY_ADDRESS=t1YourPlatformTreasury1111111111111111111
+# Zcash RPC Configuration
+# Option 1: Public RPC service (for testing/development)
+ZCASH_RPC_URL=https://zcash-mainnet.chainstacklabs.com
+ZCASH_RPC_USER=
+ZCASH_RPC_PASS=
+
+# Option 2: Local Zebra node (uncomment when ready)
+# ZCASH_RPC_URL=http://localhost:8232
+# ZCASH_RPC_USER=yourrpcuser
+# ZCASH_RPC_PASS=yourlongpassword
+
+# Option 3: Local Zaino indexer (uncomment when ready)
+# ZCASH_RPC_URL=http://localhost:8233
+# ZCASH_RPC_USER=
+# ZCASH_RPC_PASS=
+
+# Platform Treasury Address (for fee collection)
+PLATFORM_TREASURY_ADDRESS=t1UnEx5GLUk7Dn1kVCzE5ZCPEYMCCAtqPEN
+
+# Security
+API_RATE_LIMIT=100
+CORS_ORIGIN=http://localhost:3000
+
+# Monitoring
+LOG_LEVEL=info
 ```
 
 ## Usage Examples

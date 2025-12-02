@@ -1,18 +1,41 @@
 import pool from '../db/db.js';
 import { initializeWalletAnalytics } from './analytics.js';
+import { validateZcashAddress, detectAddressType } from '../utils/zcashAddress.js';
 
 async function createWallet(walletData) {
   const { project_id, address, type, privacy_mode, description, network, is_active } = walletData;
   
-  // Validate address format (basic validation)
+  // Validate address is provided
   if (!address || address.trim().length === 0) {
     throw new Error('Wallet address is required');
   }
 
-  // Validate wallet type
-  const validTypes = ['t', 'z', 'u'];
-  if (!validTypes.includes(type)) {
-    throw new Error('Invalid wallet type. Must be t, z, or u');
+  // Validate network
+  const validNetworks = ['mainnet', 'testnet'];
+  const walletNetwork = network || 'mainnet';
+  if (!validNetworks.includes(walletNetwork)) {
+    throw new Error('Invalid network. Must be mainnet or testnet');
+  }
+
+  // Validate Zcash address format
+  const validation = validateZcashAddress(address.trim(), walletNetwork);
+  if (!validation.valid) {
+    throw new Error(validation.error || 'Invalid Zcash address');
+  }
+
+  // Auto-detect wallet type if not provided, or validate if provided
+  let walletType = type;
+  if (!walletType) {
+    walletType = detectAddressType(address.trim(), walletNetwork);
+    if (!walletType) {
+      throw new Error('Could not detect wallet type from address');
+    }
+  } else {
+    // Validate provided type matches detected type
+    const detectedType = detectAddressType(address.trim(), walletNetwork);
+    if (detectedType && detectedType !== walletType) {
+      throw new Error(`Wallet type mismatch. Provided type '${walletType}' does not match detected type '${detectedType}'`);
+    }
   }
 
   // Validate privacy mode
@@ -21,22 +44,16 @@ async function createWallet(walletData) {
     throw new Error('Invalid privacy mode. Must be private, public, or monetizable');
   }
 
-  // Validate network
-  const validNetworks = ['mainnet', 'testnet'];
-  if (network && !validNetworks.includes(network)) {
-    throw new Error('Invalid network. Must be mainnet or testnet');
-  }
-
   const result = await pool.query(
     `INSERT INTO wallets (project_id, address, type, privacy_mode, description, network, is_active) 
      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
     [
       project_id, 
       address.trim(), 
-      type, 
+      walletType, 
       privacy_mode || 'private', 
       description, 
-      network || 'mainnet', 
+      walletNetwork, 
       is_active !== undefined ? is_active : true
     ]
   );
