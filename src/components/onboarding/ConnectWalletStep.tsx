@@ -6,7 +6,7 @@ import { useProjectStore } from '../../store/useProjectStore';
 import type { ProjectCategory } from '../../services/projectService';
 
 const ConnectWalletStep: React.FC = () => {
-  const { projectData, updateProjectData, setCreatedProjectId, nextStep } = useOnboardingStore();
+  const { projectData, createdProjectId, updateProjectData, setCreatedProjectId, setCreatedWalletId, setIsCompleting } = useOnboardingStore();
   const { createProject } = useProjectStore();
   
   const [formData, setFormData] = useState({
@@ -14,6 +14,7 @@ const ConnectWalletStep: React.FC = () => {
     description: projectData.description || '',
     category: projectData.category || 'other' as ProjectCategory,
     website_url: projectData.website_url || '',
+    wallet_address: projectData.wallet_address || '',
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,6 +49,22 @@ const ConnectWalletStep: React.FC = () => {
       }
     }
 
+    // Validate wallet address
+    if (!formData.wallet_address || !formData.wallet_address.trim()) {
+      errors.wallet_address = 'Wallet address is required';
+    } else {
+      const address = formData.wallet_address.trim();
+      // Basic Zcash address validation
+      const isValid = 
+        (address.startsWith('t1') && address.length >= 34) ||
+        (address.startsWith('zs1') && address.length >= 78) ||
+        (address.startsWith('u1') && address.length >= 100);
+      
+      if (!isValid) {
+        errors.wallet_address = 'Please enter a valid Zcash address (t1..., zs1..., or u1...)';
+      }
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -67,33 +84,92 @@ const ConnectWalletStep: React.FC = () => {
       updateProjectData(formData);
 
       // Check if project already exists (from previous session)
-      const { createdProjectId } = useOnboardingStore.getState();
-      
-      if (createdProjectId) {
-        // Project already exists, just move to next step
-        console.log('Using existing project:', createdProjectId);
-        nextStep();
+      let projectId = createdProjectId;
+
+      // Create project if it doesn't exist
+      if (!projectId) {
+        console.log('Creating new project...');
+        const project = await createProject({
+          name: formData.name,
+          description: formData.description || undefined,
+          category: formData.category,
+          website_url: formData.website_url || undefined,
+        });
+
+        console.log('Project creation response:', project);
+
+        if (!project) {
+          console.error('Project creation failed - no project returned');
+          setError('Failed to create project. Please try again.');
+          return;
+        }
+
+        // Extract project ID - handle both direct project object and wrapped response
+        projectId = project.data.id;
+        
+        if (!projectId) {
+          console.error('Project ID not found in response:', project);
+          setError('Project created but ID is missing. Please try again.');
+          return;
+        }
+
+        console.log('Project created with ID:', projectId);
+        setCreatedProjectId(projectId);
+      } else {
+        console.log('Using existing project ID:', projectId);
+      }
+
+      // Verify we have a project ID
+      if (!projectId) {
+        setError('Project ID is missing. Please try again.');
+        console.error('Project ID is undefined after creation');
         return;
       }
 
-      // Create new project via API
-      const project = await createProject({
-        name: formData.name,
-        description: formData.description || undefined,
-        category: formData.category,
-        website_url: formData.website_url || undefined,
-      });
+      // Now create the wallet for this project
+      const { api } = await import('../../services/apiClient');
+      
+      const walletData = {
+        project_id: projectId,
+        address: formData.wallet_address.trim(),
+        label: 'Main Wallet',
+        privacy_mode: 'private',
+      };
+      
+      console.log('Creating wallet with project_id:', projectId);
+      console.log('Wallet data:', { ...walletData, address: walletData.address.substring(0, 10) + '...' });
+      
+      const walletResponse = await api.wallets.add(walletData);
 
-      if (project) {
-        // Store project ID and move to next step
-        setCreatedProjectId(project.id);
-        nextStep();
-      } else {
-        setError('Failed to create project. Please try again.');
+      if (!walletResponse.success || !walletResponse.data) {
+        console.error('Wallet creation failed:', walletResponse);
+        // Show both error code and message for better debugging
+        // Response structure: { success: false, error: "ERROR_CODE", message: "Error message" }
+        const errorCode = walletResponse.error;
+        const errorMessage = walletResponse.message || 'Failed to add wallet. Please try again.';
+        const fullError = errorCode && errorMessage ? `${errorMessage}` : (errorMessage || errorCode || 'Failed to add wallet');
+        setError(fullError);
+        return;
       }
+      
+      console.log('Wallet created successfully:', walletResponse.data);
+
+      // Store wallet ID - the response structure is { success: true, data: wallet }
+      const walletId = walletResponse.data?.id;
+      if (!walletId) {
+        console.error('Wallet ID not found in response:', walletResponse);
+        setError('Wallet created but ID not returned. Please refresh and try again.');
+        return;
+      }
+      
+      setCreatedWalletId(walletId);
+
+      // Trigger completion step (which will sync and encrypt data)
+      setIsCompleting(true);
+
     } catch (err) {
-      console.error('Project creation error:', err);
-      setError('Network error. Please check your connection and try again.');
+      console.error('Project/Wallet creation error:', err);
+      setError(err instanceof Error ? err.message : 'Network error. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -203,6 +279,32 @@ const ConnectWalletStep: React.FC = () => {
           {formErrors.website_url && (
             <p className="mt-1 text-sm text-red-600">{formErrors.website_url}</p>
           )}
+        </div>
+
+        {/* Wallet Address */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Zcash Wallet Address *
+          </label>
+          <input
+            type="text"
+            value={formData.wallet_address}
+            onChange={(e) => setFormData({ ...formData, wallet_address: e.target.value })}
+            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent font-mono text-sm ${
+              formErrors.wallet_address 
+                ? 'border-red-300 focus:ring-red-500' 
+                : 'border-gray-200 focus:ring-black'
+            }`}
+            placeholder="t1abc123... or zs1xyz789..."
+            required
+            disabled={isSubmitting}
+          />
+          {formErrors.wallet_address && (
+            <p className="mt-1 text-sm text-red-600">{formErrors.wallet_address}</p>
+          )}
+          <p className="mt-1 text-xs text-gray-500">
+            We'll track transactions for this wallet address
+          </p>
         </div>
 
         {/* Submit Button */}

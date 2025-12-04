@@ -9,6 +9,7 @@ interface ProjectData {
   description: string;
   category: ProjectCategory;
   website_url?: string;
+  wallet_address?: string;
 }
 
 interface WalletData {
