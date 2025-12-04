@@ -1,8 +1,14 @@
 import express from "express";
 import { pool } from "../config/appConfig.js";
 import { getBlockchainInfo } from "../config/zcash.js";
+import { authenticateJWT } from "../middleware/auth.js";
+import { requireAdmin } from "../middleware/authorization.js";
 
 const router = express.Router();
+
+// All admin routes require authentication and admin privileges
+router.use(authenticateJWT);
+router.use(requireAdmin);
 
 /**
  * Get platform statistics

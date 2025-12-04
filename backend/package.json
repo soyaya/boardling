@@ -107,6 +107,7 @@
     "@types/node": "^20.10.5",
     "@types/pg": "^8.10.9",
     "eslint": "^8.56.0",
+    "fast-check": "^4.3.0",
     "jest": "^29.7.0",
     "nodemon": "^3.0.2",
     "supertest": "^7.1.4",

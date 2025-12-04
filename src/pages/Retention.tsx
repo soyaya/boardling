@@ -1,9 +1,64 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import CohortHeatmap from '../components/retention/CohortHeatmap';
 import MetricCard from '../components/dashboard/MetricCard';
-import { Users, UserMinus, Repeat, TrendingDown } from 'lucide-react';
+import { Users, UserMinus, Repeat, TrendingDown, AlertCircle } from 'lucide-react';
+import { useCurrentProject } from '../store/useProjectStore';
+import { analyticsService, type RetentionAnalytics } from '../services/analyticsService';
 
 const Retention: React.FC = () => {
+  const { currentProject } = useCurrentProject();
+  const [retentionData, setRetentionData] = useState<RetentionAnalytics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRetentionData = async () => {
+      if (!currentProject?.id) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await analyticsService.getRetention(currentProject.id);
+
+        if (response.success && response.data) {
+          setRetentionData(response.data);
+        } else {
+          setError(response.error || 'Failed to load retention data');
+        }
+      } catch (err) {
+        console.error('Retention data fetch error:', err);
+        setError('Failed to load retention data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRetentionData();
+  }, [currentProject?.id]);
+
+  // Calculate metrics from retention data
+  const avgRetentionWeek4 = retentionData?.cohorts.length
+    ? (retentionData.cohorts.reduce((sum, c) => sum + c.retentionWeek4, 0) / retentionData.cohorts.length).toFixed(1)
+    : '0';
+
+  const churnRate = retentionData?.cohorts.length
+    ? (100 - parseFloat(avgRetentionWeek4)).toFixed(1)
+    : '0';
+
+  const totalWallets = retentionData?.cohorts.reduce((sum, c) => sum + c.walletCount, 0) || 0;
+
+  const activeWallets = retentionData?.cohorts.length
+    ? Math.round(totalWallets * (parseFloat(avgRetentionWeek4) / 100))
+    : 0;
+
+  const atRiskWallets = retentionData?.cohorts.length
+    ? Math.round(totalWallets * 0.15) // Estimate 15% at risk
+    : 0;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -11,43 +66,69 @@ const Retention: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Retention & Cohorts</h1>
           <p className="text-gray-500">Track user retention and identify churn risks</p>
         </div>
-        <button className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800">
+        <button 
+          className="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading || !retentionData}
+        >
           Export Analysis
         </button>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-medium text-red-800">Error loading retention data</h3>
+            <p className="text-sm text-red-600 mt-1">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {!currentProject && !loading && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-medium text-yellow-800">No project selected</h3>
+            <p className="text-sm text-yellow-600 mt-1">Please select a project to view retention analytics.</p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <MetricCard
           title="Avg Retention (W4)"
-          value="32%"
+          value={loading ? '...' : `${avgRetentionWeek4}%`}
           change="+2.4%"
           trend="up"
           icon={<Users className="w-5 h-5" />}
         />
         <MetricCard
           title="Churn Rate"
-          value="12%"
+          value={loading ? '...' : `${churnRate}%`}
           change="-0.5%"
-          trend="up" // Good that it's down, but trend direction visually
+          trend="up"
           icon={<UserMinus className="w-5 h-5" />}
         />
         <MetricCard
-          title="Recurring Users"
-          value="450"
+          title="Active Wallets"
+          value={loading ? '...' : activeWallets.toString()}
           change="+15%"
           trend="up"
           icon={<Repeat className="w-5 h-5" />}
         />
         <MetricCard
           title="At Risk"
-          value="85"
+          value={loading ? '...' : atRiskWallets.toString()}
           change="+5%"
-          trend="down" // Bad
+          trend="down"
           icon={<TrendingDown className="w-5 h-5" />}
         />
       </div>
 
-      <CohortHeatmap />
+      <CohortHeatmap 
+        cohorts={retentionData?.cohorts || []} 
+        loading={loading}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">

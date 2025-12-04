@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { useTokenValidation } from './hooks/useAuthError';
 import { useAuthContext } from './contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -92,11 +93,13 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </AuthProvider>
+      <ToastProvider position="top-right">
+        <AuthProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </AuthProvider>
+      </ToastProvider>
     </ErrorBoundary>
   );
 }

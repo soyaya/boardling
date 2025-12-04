@@ -1,5 +1,8 @@
-import React from 'react';
-import { TrendingUp, Activity, Users, DollarSign, Shield, AlertTriangle, Target, Zap, BarChart } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Activity, Users, DollarSign, Shield, AlertTriangle, Target, Zap, BarChart, Loader2 } from 'lucide-react';
+import { useProjectStore } from '../store/useProjectStore';
+import { analyticsService } from '../services/analyticsService';
+import type { ProjectHealthAnalytics } from '../services/analyticsService';
 
 interface HealthMetric {
   name: string;
@@ -10,17 +13,87 @@ interface HealthMetric {
 }
 
 const ProjectHealth: React.FC = () => {
-  const healthMetrics: HealthMetric[] = [
-    { name: 'Adoption', score: 88, status: 'excellent', trend: '+12%', icon: <Users className="w-5 h-5" /> },
-    { name: 'Activation', score: 82, status: 'good', trend: '+8%', icon: <Zap className="w-5 h-5" /> },
-    { name: 'Retention', score: 76, status: 'good', trend: '+5%', icon: <Target className="w-5 h-5" /> },
-    { name: 'Revenue Growth', score: 91, status: 'excellent', trend: '+18%', icon: <DollarSign className="w-5 h-5" /> },
-    { name: 'Shielded Privacy Health', score: 85, status: 'excellent', trend: '+10%', icon: <Shield className="w-5 h-5" /> },
-    { name: 'Migration Score', score: 45, status: 'warning', trend: '-8%', icon: <AlertTriangle className="w-5 h-5" /> },
-    { name: 'Churn Risk', score: 38, status: 'warning', trend: '+5%', icon: <AlertTriangle className="w-5 h-5" /> },
-    { name: 'Productivity', score: 92, status: 'excellent', trend: '+15%', icon: <Activity className="w-5 h-5" /> },
-    { name: 'Engagement Consistency', score: 79, status: 'good', trend: '+6%', icon: <BarChart className="w-5 h-5" /> },
-  ];
+  const { currentProject } = useProjectStore();
+  const [healthData, setHealthData] = useState<ProjectHealthAnalytics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchHealthData = async () => {
+      if (!currentProject?.id) {
+        setError('No project selected');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await analyticsService.getHealth(currentProject.id);
+
+        if (response.success && response.data) {
+          setHealthData(response.data);
+        } else {
+          setError(response.error || 'Failed to fetch health data');
+        }
+      } catch (err) {
+        console.error('Error fetching health data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch health data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHealthData();
+  }, [currentProject?.id]);
+
+  // Map health indicators to display metrics
+  const healthMetrics: HealthMetric[] = healthData?.indicators.map(indicator => {
+    // Determine icon based on indicator name
+    let icon: React.ReactNode;
+    const name = indicator.name.toLowerCase();
+    
+    if (name.includes('adoption') || name.includes('wallet')) {
+      icon = <Users className="w-5 h-5" />;
+    } else if (name.includes('activation') || name.includes('active')) {
+      icon = <Zap className="w-5 h-5" />;
+    } else if (name.includes('retention')) {
+      icon = <Target className="w-5 h-5" />;
+    } else if (name.includes('revenue') || name.includes('transaction')) {
+      icon = <DollarSign className="w-5 h-5" />;
+    } else if (name.includes('shield') || name.includes('privacy')) {
+      icon = <Shield className="w-5 h-5" />;
+    } else if (name.includes('churn') || name.includes('risk')) {
+      icon = <AlertTriangle className="w-5 h-5" />;
+    } else if (name.includes('productivity')) {
+      icon = <Activity className="w-5 h-5" />;
+    } else {
+      icon = <BarChart className="w-5 h-5" />;
+    }
+
+    // Map status to our display status
+    let displayStatus: 'excellent' | 'good' | 'warning' | 'critical';
+    if (indicator.status === 'good') {
+      displayStatus = indicator.value >= 80 ? 'excellent' : 'good';
+    } else if (indicator.status === 'warning') {
+      displayStatus = 'warning';
+    } else {
+      displayStatus = 'critical';
+    }
+
+    // Format trend
+    const trendSymbol = indicator.trend === 'up' ? '+' : indicator.trend === 'down' ? '-' : '';
+    const trendValue = Math.abs(Math.round((indicator.value - 50) / 5)); // Simplified trend calculation
+    const trend = indicator.trend === 'stable' ? '0%' : `${trendSymbol}${trendValue}%`;
+
+    return {
+      name: indicator.name,
+      score: Math.round(indicator.value),
+      status: displayStatus,
+      trend,
+      icon,
+    };
+  }) || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -42,7 +115,51 @@ const ProjectHealth: React.FC = () => {
     }
   };
 
-  const overallScore = Math.round(healthMetrics.reduce((acc, m) => acc + m.score, 0) / healthMetrics.length);
+  const overallScore = healthData?.overallHealth || 0;
+  const healthStatus = overallScore >= 80 ? 'Excellent Health' : 
+                       overallScore >= 60 ? 'Good Health' : 
+                       overallScore >= 40 ? 'Fair Health' : 
+                       overallScore >= 20 ? 'Poor Health' : 'Critical';
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">Loading health analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+        <div className="flex items-center">
+          <AlertTriangle className="w-6 h-6 text-red-600 mr-3" />
+          <div>
+            <h3 className="text-lg font-semibold text-red-900">Error Loading Health Data</h3>
+            <p className="text-red-700 mt-1">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state
+  if (!healthData || healthMetrics.length === 0) {
+    return (
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-12 text-center">
+        <BarChart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Health Data Available</h3>
+        <p className="text-gray-600">
+          Health metrics will appear here once your project has wallet activity.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -90,7 +207,7 @@ const ProjectHealth: React.FC = () => {
                 <span className="text-xs text-gray-500">/ 100</span>
               </div>
             </div>
-            <p className="mt-2 text-sm font-medium text-green-600">Healthy Project</p>
+            <p className="mt-2 text-sm font-medium text-green-600">{healthStatus}</p>
           </div>
         </div>
       </div>
@@ -124,52 +241,60 @@ const ProjectHealth: React.FC = () => {
         ))}
       </div>
 
-      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Health Insights & Recommendations</h3>
-        <div className="space-y-3">
-          <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center mt-0.5">
-                <span className="text-white text-xs font-bold">✓</span>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-bold text-green-800">Strong Revenue Growth</p>
-                <p className="text-xs text-green-700 mt-1">
-                  Revenue increased 18% - continue current monetization strategy
-                </p>
-              </div>
-            </div>
-          </div>
+      {healthData.alerts && healthData.alerts.length > 0 && (
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Health Insights & Recommendations</h3>
+          <div className="space-y-3">
+            {healthData.alerts.map((alert, index) => {
+              const bgColor = alert.severity === 'critical' ? 'bg-red-50 border-red-100' :
+                             alert.severity === 'warning' ? 'bg-yellow-50 border-yellow-100' :
+                             'bg-green-50 border-green-100';
+              
+              const iconBg = alert.severity === 'critical' ? 'bg-red-500' :
+                            alert.severity === 'warning' ? 'bg-yellow-500' :
+                            'bg-green-500';
+              
+              const textColor = alert.severity === 'critical' ? 'text-red-800' :
+                               alert.severity === 'warning' ? 'text-yellow-800' :
+                               'text-green-800';
+              
+              const textColorLight = alert.severity === 'critical' ? 'text-red-700' :
+                                    alert.severity === 'warning' ? 'text-yellow-700' :
+                                    'text-green-700';
+              
+              const icon = alert.severity === 'critical' ? '✕' :
+                          alert.severity === 'warning' ? '!' :
+                          '✓';
 
-          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-100">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center mt-0.5">
-                <span className="text-white text-xs font-bold">!</span>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-bold text-yellow-800">Migration Score Needs Attention</p>
-                <p className="text-xs text-yellow-700 mt-1">
-                  8% increase in wallets leaving. Consider re-engagement campaigns or feature improvements.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-100">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center mt-0.5">
-                <span className="text-white text-xs font-bold">!</span>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-bold text-yellow-800">Churn Risk Increasing</p>
-                <p className="text-xs text-yellow-700 mt-1">
-                  5% rise in churn risk. Target at-risk wallets with personalized notifications and incentives.
-                </p>
-              </div>
-            </div>
+              return (
+                <div key={index} className={`p-4 rounded-lg border ${bgColor}`}>
+                  <div className="flex items-start">
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full ${iconBg} flex items-center justify-center mt-0.5`}>
+                      <span className="text-white text-xs font-bold">{icon}</span>
+                    </div>
+                    <div className="ml-3 flex-1">
+                      <p className={`text-sm font-bold ${textColor}`}>{alert.message}</p>
+                      <p className={`text-xs ${textColorLight} mt-1`}>
+                        {new Date(alert.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      )}
+
+      {(!healthData.alerts || healthData.alerts.length === 0) && (
+        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Health Insights & Recommendations</h3>
+          <div className="text-center py-8">
+            <p className="text-gray-500">No alerts or recommendations at this time.</p>
+            <p className="text-sm text-gray-400 mt-2">Your project health is being monitored continuously.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

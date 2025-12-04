@@ -2,11 +2,15 @@ import dotenv from "dotenv";
 import axios from "axios";
 import { Pool } from "pg";
 import https from "https";
+import { EventEmitter } from "events";
 import config from "./config.js";
 import {addressStats, updateAddressStats, formatOutput } from './formatOutputs.js'
 import { saveOutputs } from "./saveOutputs.js";
 
 dotenv.config();
+
+// Create event emitter for blockchain events
+const blockchainEvents = new EventEmitter();
 
 const rpcUrl = config.rpc.url;
 const pool = new Pool({ connectionString: config.db.connectionString });
@@ -147,6 +151,14 @@ async function syncBlock(height) {
     }
 
     console.log(`✔ Finished block ${height}`);
+    
+    // Emit block processed event
+    blockchainEvents.emit('blockProcessed', {
+      height,
+      hash,
+      timestamp: block.time,
+      transactionCount: block.tx.length
+    });
   } catch (err) {
     console.error(`⚠ Failed to sync block ${height}:`, err.message);
     console.log("⏱ Retrying block in 5s...");
@@ -178,6 +190,9 @@ async function main() {
     }
   }
 }
+
+// Export event emitter for external listeners
+export { blockchainEvents };
 
 main().catch(err => {
   console.error("FATAL ERROR:", err);

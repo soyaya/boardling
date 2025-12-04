@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Bell, HelpCircle, LogOut, Settings, User } from 'lucide-react';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { SubscriptionStatus } from '../subscription/SubscriptionStatus';
 
 const TopBar: React.FC = () => {
   const navigate = useNavigate();
@@ -74,6 +75,15 @@ const TopBar: React.FC = () => {
       </div>
 
       <div className="flex items-center space-x-4 ml-4">
+        {/* Subscription Status Badge */}
+        <button
+          onClick={() => navigate('/settings?tab=billing')}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+          title="View Subscription"
+        >
+          <SubscriptionStatus compact />
+        </button>
+
         {/* Help Button */}
         <button
           onClick={() => window.open('https://docs.boardling.io', '_blank')}

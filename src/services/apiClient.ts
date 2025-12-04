@@ -235,6 +235,15 @@ export const api = {
     checkPayment: (data: any) => apiClient.post('/api/invoice/check', data),
   },
 
+  // Subscriptions
+  subscriptions: {
+    getStatus: () => apiClient.get('/api/subscriptions/status'),
+    upgrade: (data: any) => apiClient.post('/api/subscriptions/upgrade', data),
+    cancel: () => apiClient.post('/api/subscriptions/cancel'),
+    getHistory: () => apiClient.get('/api/subscriptions/history'),
+    checkPremium: () => apiClient.get('/api/subscriptions/check-premium'),
+  },
+
   // System
   system: {
     health: () => apiClient.get('/health', { requireAuth: false }),

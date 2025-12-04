@@ -11,6 +11,7 @@ import {
   validateAddressController
 } from '../controllers/wallet.js';
 import { authenticateJWT } from '../middleware/auth.js';
+import { requireOwnership } from '../middleware/authorization.js';
 
 const router = express.Router();
 
@@ -29,12 +30,12 @@ router.post('/', createWalletController);
 router.get('/', getProjectWalletsController);
 
 // GET /api/wallets/:id - Get wallet details
-router.get('/:walletId', getWalletController);
+router.get('/:walletId', requireOwnership('wallet', 'walletId'), getWalletController);
 
 // PUT /api/wallets/:id - Update wallet privacy mode
-router.put('/:walletId', updateWalletController);
+router.put('/:walletId', requireOwnership('wallet', 'walletId'), updateWalletController);
 
 // DELETE /api/wallets/:id - Remove wallet
-router.delete('/:walletId', deleteWalletController);
+router.delete('/:walletId', requireOwnership('wallet', 'walletId'), deleteWalletController);
 
 export default router;

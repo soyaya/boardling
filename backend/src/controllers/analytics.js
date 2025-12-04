@@ -1029,13 +1029,33 @@ const getProjectRetentionAnalyticsController = async (req, res, next) => {
       analyzeRetentionTrends(cohortType, parseInt(limit))
     ]);
 
+    // Calculate average retention across all cohorts
+    const averageRetention = heatmapData.length > 0
+      ? heatmapData.reduce((sum, cohort) => {
+          const avg = (
+            (parseFloat(cohort.week_1) || 0) +
+            (parseFloat(cohort.week_2) || 0) +
+            (parseFloat(cohort.week_3) || 0) +
+            (parseFloat(cohort.week_4) || 0)
+          ) / 4;
+          return sum + avg;
+        }, 0) / heatmapData.length
+      : 0;
+
+    // Determine period range
+    const periods = heatmapData.map(c => new Date(c.cohort_period)).filter(d => !isNaN(d.getTime()));
+    const periodStart = periods.length > 0 ? new Date(Math.min(...periods)).toISOString() : new Date().toISOString();
+    const periodEnd = periods.length > 0 ? new Date(Math.max(...periods)).toISOString() : new Date().toISOString();
+
     res.json({
       success: true,
       data: {
-        project_id: projectId,
-        project_name: project.name,
-        cohort_type: cohortType,
-        heatmap_data: heatmapData,
+        cohorts: heatmapData,
+        average_retention: averageRetention,
+        period: {
+          start: periodStart,
+          end: periodEnd
+        },
         trend_analysis: trendAnalysis
       }
     });

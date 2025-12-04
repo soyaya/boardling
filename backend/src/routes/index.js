@@ -9,7 +9,9 @@ import express from "express";
 import authRouter from "./auth.js";
 import projectRouter from "./project.js";
 import walletRouter from "./wallet.js";
+import onboardingRouter from "./onboarding.js";
 import subscriptionRouter from "./subscription.js";
+import paymentRouter from "./payment.js";
 import invoiceRouter from "./invoice.js";
 import withdrawRouter from "./withdraw.js";
 import adminRouter from "./admin.js";
@@ -22,6 +24,7 @@ import alternativesRouter from "./alternatives.js";
 import unifiedRouter from "./unified.js";
 import unifiedInvoiceRouter from "./unified-invoice.js";
 import analyticsRouter from "./analytics.js";
+import fheRouter from "./fhe.js";
 
 // Import authentication middleware
 import {
@@ -158,6 +161,24 @@ router.get("/api", (req, res) => {
           description: "Get current user information"
         }
       },
+      onboarding: {
+        "POST /api/onboarding/complete": {
+          auth: "required",
+          description: "Complete onboarding flow - creates project and wallet in single transaction"
+        },
+        "GET /api/onboarding/status": {
+          auth: "required",
+          description: "Get user's onboarding status and related data"
+        },
+        "GET /api/onboarding/check": {
+          auth: "required",
+          description: "Check if user has completed onboarding"
+        },
+        "POST /api/onboarding/reset": {
+          auth: "required",
+          description: "Reset onboarding status (for testing/admin purposes)"
+        }
+      },
       projects: {
         "POST /api/projects": {
           auth: "required",
@@ -226,6 +247,40 @@ router.get("/api", (req, res) => {
         "GET /api/subscriptions/check-premium": {
           auth: "required",
           description: "Check if user has premium access"
+        }
+      },
+      payments: {
+        "POST /api/payments/invoice": {
+          auth: "required",
+          description: "Create subscription payment invoice"
+        },
+        "GET /api/payments/invoice/:id": {
+          auth: "required",
+          description: "Get invoice details"
+        },
+        "POST /api/payments/check/:id": {
+          auth: "required",
+          description: "Check payment status and process if detected"
+        },
+        "GET /api/payments/balance": {
+          auth: "required",
+          description: "Get user balance from data monetization"
+        },
+        "GET /api/payments/history": {
+          auth: "required",
+          description: "Get payment history"
+        },
+        "POST /api/payments/data-access": {
+          auth: "required",
+          description: "Create data access payment invoice"
+        },
+        "POST /api/payments/process-data-access/:id": {
+          auth: "required",
+          description: "Process data access payment"
+        },
+        "POST /api/payments/webhook": {
+          auth: "none",
+          description: "Webhook endpoint for payment notifications"
         }
       },
       analytics: {
@@ -543,6 +598,31 @@ router.get("/api", (req, res) => {
           description: "Get ZIP-316 implementation guide",
         },
       },
+      fhe: {
+        "GET /api/fhe/status": {
+          auth: "required",
+          description: "Get FHE service status and configuration"
+        },
+        "POST /api/fhe/encrypt": {
+          auth: "required",
+          permissions: ["admin"],
+          description: "Encrypt data (testing/development only)"
+        },
+        "POST /api/fhe/decrypt": {
+          auth: "required",
+          permissions: ["admin"],
+          description: "Decrypt data (testing/development only)"
+        },
+        "POST /api/fhe/generate-key": {
+          auth: "required",
+          permissions: ["admin"],
+          description: "Generate new encryption key for setup"
+        },
+        "GET /api/fhe/encrypted-fields": {
+          auth: "required",
+          description: "Get list of fields that are encrypted"
+        }
+      },
     },
     health_check: "GET /health",
   });
@@ -554,6 +634,9 @@ router.get("/api", (req, res) => {
 
 // Authentication routes (public endpoints)
 router.use("/auth", authRouter);
+
+// Onboarding routes (require JWT authentication)
+router.use("/api/onboarding", onboardingRouter);
 
 // Project routes (require JWT authentication)
 router.use("/api/projects", projectRouter);
@@ -568,6 +651,9 @@ router.get("/api/user/wallets", authenticateJWT, getUserWalletsController);
 
 // Subscription routes (require JWT authentication)
 router.use("/api/subscriptions", subscriptionRouter);
+
+// Payment routes (require JWT authentication)
+router.use("/api/payments", paymentRouter);
 
 // Analytics routes (require JWT authentication)
 router.use("/api", analyticsRouter);
@@ -683,6 +769,9 @@ router.use("/api/alternatives", alternativesRouter);
 
 // Unified address routes (ZIP-316 compliant)
 router.use("/api/unified", unifiedRouter);
+
+// FHE (Fully Homomorphic Encryption) routes
+router.use("/api/fhe", fheRouter);
 
 /**
  * Error handling
