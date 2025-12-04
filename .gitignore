@@ -17,10 +17,10 @@ dist-ssr
 # Environment files
 **/.env
 **/.env.backup
-**/
 **/backups
 # Editor directories and files
 .vscode/*
+.kiro/*
 !.vscode/extensions.json
 .idea
 .DS_Store
