@@ -20,7 +20,6 @@ cd boardling
 # Install dependencies
 npm install
 cd backend && npm install
-cd ../api-frontend && npm install
 
 # Setup database
 cd ../backend

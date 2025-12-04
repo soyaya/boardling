@@ -2,7 +2,7 @@ import pool from '../db/db.js';
 import validator from 'validator';
 
 async function createProject(projectData) {
-  const { user_id, name, description, category, website_url, github_url, logo_url, tags } = projectData;
+  const { user_id, name, description, category, website_url, github_url, logo_url, tags, default_wallet_address } = projectData;
   
   // Validate URLs if provided
   if (website_url && !validator.isURL(website_url)) {
@@ -16,9 +16,9 @@ async function createProject(projectData) {
   }
 
   const result = await pool.query(
-    `INSERT INTO projects (user_id, name, description, category, website_url, github_url, logo_url, tags) 
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-    [user_id, name, description, category, website_url, github_url, logo_url, tags]
+    `INSERT INTO projects (user_id, name, description, category, website_url, github_url, logo_url, tags, default_wallet_address) 
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+    [user_id, name, description, category, website_url, github_url, logo_url, tags, default_wallet_address]
   );
   
   return result.rows[0];

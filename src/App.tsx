@@ -20,6 +20,7 @@ import Settings from './pages/Settings';
 import Productivity from './pages/Productivity';
 import Segments from './pages/Segments';
 import ProjectHealth from './pages/ProjectHealth';
+import Projects from './pages/Projects';
 import Landing from './pages/Landing';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
@@ -81,6 +82,7 @@ const AppContent: React.FC = () => {
         <Route path="productivity" element={<Productivity />} />
         <Route path="segments" element={<Segments />} />
         <Route path="project-health" element={<ProjectHealth />} />
+        <Route path="projects" element={<Projects />} />
         <Route path="settings" element={<Settings />} />
       </Route>
 

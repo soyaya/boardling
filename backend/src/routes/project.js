@@ -30,6 +30,41 @@ router.get('/:id', requireOwnership('project'), getProjectController);         /
 router.put('/:id', requireOwnership('project'), updateProjectController);      // UPDATE
 router.delete('/:id', requireOwnership('project'), deleteProjectController);   // DELETE
 
+// Sync default wallets endpoint
+router.post('/sync-default-wallets', async (req, res, next) => {
+  try {
+    const { getAllProjects } = await import('../models/project.js');
+    const { ensureDefaultWalletAddress } = await import('../services/projectWalletService.js');
+    
+    // Get user's projects
+    const userProjects = await getAllProjects(req.user.id);
+    
+    if (userProjects.length === 0) {
+      return res.json({ success: true, message: 'No projects to sync', synced: 0 });
+    }
+    
+    // Sync each project
+    let synced = 0;
+    for (const project of userProjects) {
+      try {
+        const result = await ensureDefaultWalletAddress(project.id);
+        if (result.success) synced++;
+      } catch (err) {
+        console.warn(`Failed to sync project ${project.id}:`, err.message);
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Synced ${synced}/${userProjects.length} projects`,
+      synced,
+      total: userProjects.length
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Nested wallet routes (backward compatibility)
 router.post('/:projectId/wallets', requireOwnership('project', 'projectId'), createWalletController);           // CREATE wallet for project
 router.get('/:projectId/wallets', requireOwnership('project', 'projectId'), getProjectWalletsController);      // GET all wallets for project
