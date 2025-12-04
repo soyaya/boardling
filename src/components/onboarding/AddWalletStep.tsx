@@ -8,7 +8,7 @@ import { api } from '../../services/apiClient';
 
 const AddWalletStep: React.FC = () => {
   const navigate = useNavigate();
-  const { createdProjectId, walletData, updateWalletData, setCreatedWalletId, reset } = useOnboardingStore();
+  const { createdProjectId, walletData, updateWalletData, setCreatedWalletId, setIsCompleting, reset } = useOnboardingStore();
   const { user } = useAuthStore();
   
   const [formData, setFormData] = useState({
@@ -139,21 +139,8 @@ const AddWalletStep: React.FC = () => {
         // Store wallet ID
         setCreatedWalletId(response.data.id);
         
-        // Try to mark onboarding as complete (optional - backend endpoint may not exist yet)
-        try {
-          if (user) {
-            await api.users.updateProfile({ onboarding_completed: true });
-          }
-        } catch (err) {
-          console.warn('Could not update onboarding status:', err);
-          // Continue anyway - this is not critical
-        }
-        
-        // Clear onboarding data and redirect to dashboard
-        setTimeout(() => {
-          reset();
-          navigate('/dashboard');
-        }, 500);
+        // Trigger completion step
+        setIsCompleting(true);
       } else {
         setError(response.error || 'Failed to add wallet');
       }

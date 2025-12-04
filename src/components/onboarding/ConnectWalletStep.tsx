@@ -66,7 +66,17 @@ const ConnectWalletStep: React.FC = () => {
       // Update onboarding store with project data
       updateProjectData(formData);
 
-      // Create project via API
+      // Check if project already exists (from previous session)
+      const { createdProjectId } = useOnboardingStore.getState();
+      
+      if (createdProjectId) {
+        // Project already exists, just move to next step
+        console.log('Using existing project:', createdProjectId);
+        nextStep();
+        return;
+      }
+
+      // Create new project via API
       const project = await createProject({
         name: formData.name,
         description: formData.description || undefined,

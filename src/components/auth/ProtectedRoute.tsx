@@ -27,7 +27,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   redirectTo = '/signin' 
 }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const location = useLocation();
 
   // Show loading spinner while checking authentication
@@ -45,6 +45,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         replace 
       />
     );
+  }
+
+  // Check if user needs to complete onboarding
+  // Don't redirect if already on onboarding page
+  if (user && user.onboarding_completed === false && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
   }
 
   // User is authenticated, render the protected content

@@ -29,6 +29,8 @@ export interface User {
   subscription_expires_at?: string | null;
   onboarding_completed?: boolean;
   onboarding_step?: 'registration' | 'project_creation' | 'wallet_addition' | 'analytics_access' | 'completed';
+  has_project?: boolean;
+  has_wallet?: boolean;
   balance_zec?: number;
   created_at: string;
   updated_at: string;
@@ -533,6 +535,39 @@ class AuthService {
       return payload.exp ? new Date(payload.exp * 1000) : null;
     } catch (error) {
       return null;
+    }
+  }
+
+  /**
+   * Sync wallet data after onboarding
+   */
+  async syncWallet(): Promise<{ success: boolean; wallets_synced?: number; total_transactions?: number; error?: string }> {
+    try {
+      const response = await this.authenticatedRequest('/api/onboarding/sync-wallet', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || data.message || 'Failed to sync wallet'
+        };
+      }
+
+      return {
+        success: true,
+        wallets_synced: data.wallets_synced || 0,
+        total_transactions: data.total_transactions || 0
+      };
+
+    } catch (error) {
+      console.error('Sync wallet error:', error);
+      return {
+        success: false,
+        error: 'Network error. Please try again.',
+      };
     }
   }
 }

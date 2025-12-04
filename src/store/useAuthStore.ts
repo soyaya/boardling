@@ -85,14 +85,23 @@ export const useAuthStore = create<AuthState>()(
             const response = await authService.register(userData);
 
             if (response.success) {
-              // Backend doesn't return token on registration
-              // User needs to login after registration
-              set({
-                user: null,
-                isAuthenticated: false,
-                loading: false,
-                error: null,
-              });
+              // Check if backend returned token (auto-login)
+              if (response.token && response.user) {
+                set({
+                  user: response.user,
+                  isAuthenticated: true,
+                  loading: false,
+                  error: null,
+                });
+              } else {
+                // No token - user needs to login manually
+                set({
+                  user: null,
+                  isAuthenticated: false,
+                  loading: false,
+                  error: null,
+                });
+              }
             } else {
               set({
                 user: null,

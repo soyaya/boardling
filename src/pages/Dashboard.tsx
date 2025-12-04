@@ -1,17 +1,32 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import OverviewMetrics from '../components/dashboard/OverviewMetrics';
 import ProductivityPanel from '../components/dashboard/ProductivityPanel';
+import WelcomeModal from '../components/dashboard/WelcomeModal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { analyticsService, type AnalyticsData } from '../services/analyticsService';
 import { useCurrentProject } from '../store/useProjectStore';
 import { AlertCircle, Download, FileText } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
+  const location = useLocation();
   const { currentProject } = useCurrentProject();
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+  // Check if this is first visit from onboarding
+  useEffect(() => {
+    const isFirstVisit = location.state?.firstVisit === true;
+    const hasSeenWelcome = localStorage.getItem('boardling_welcome_shown');
+    
+    if (isFirstVisit && !hasSeenWelcome) {
+      setShowWelcomeModal(true);
+      localStorage.setItem('boardling_welcome_shown', 'true');
+    }
+  }, [location]);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -91,16 +106,23 @@ const Dashboard: React.FC = () => {
   const chartData = prepareChartData();
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500">
-            {currentProject 
-              ? `Real-time analysis for ${currentProject.name}` 
-              : 'Select a project to view analytics'}
-          </p>
-        </div>
+    <>
+      {/* Welcome Modal for First-Time Users */}
+      <WelcomeModal 
+        isOpen={showWelcomeModal} 
+        onClose={() => setShowWelcomeModal(false)} 
+      />
+
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-gray-500">
+              {currentProject 
+                ? `Real-time analysis for ${currentProject.name}` 
+                : 'Select a project to view analytics'}
+            </p>
+          </div>
         <div className="flex space-x-3">
           <button 
             onClick={handleExport}
@@ -282,6 +304,7 @@ const Dashboard: React.FC = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

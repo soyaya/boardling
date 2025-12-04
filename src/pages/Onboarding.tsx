@@ -6,10 +6,11 @@ import { useAuthStore } from '../store/useAuthStore';
 import WelcomeStep from '../components/onboarding/WelcomeStep';
 import ConnectWalletStep from '../components/onboarding/ConnectWalletStep';
 import AddWalletStep from '../components/onboarding/AddWalletStep';
+import CompletionStep from '../components/onboarding/CompletionStep';
 
 const Onboarding: React.FC = () => {
   const navigate = useNavigate();
-  const { currentStep, previousStep } = useOnboardingStore();
+  const { currentStep, previousStep, createdProjectId, createdWalletId, isCompleting, setStep } = useOnboardingStore();
   const { isAuthenticated, user } = useAuthStore();
 
   // Redirect to sign in if not authenticated
@@ -20,12 +21,56 @@ const Onboarding: React.FC = () => {
   }, [isAuthenticated, navigate]);
 
   // If user has already completed onboarding, redirect to dashboard
-  // Note: This check is optional - backend may not have onboarding_completed field yet
   useEffect(() => {
     if (user?.onboarding_completed === true) {
       navigate('/dashboard');
     }
   }, [user, navigate]);
+
+  // Restore onboarding progress on mount
+  useEffect(() => {
+    const restoreOnboardingState = async () => {
+      if (isAuthenticated && user && !user.onboarding_completed) {
+        // Determine the correct step based on backend data
+        if (user.has_project && user.has_wallet) {
+          // Both exist but onboarding not marked complete - trigger completion
+          // This shouldn't normally happen, but handle it gracefully
+          setStep(3);
+        } else if (user.has_project && !user.has_wallet) {
+          // Project exists but no wallet - fetch project ID and go to step 3
+          console.log('Resuming onboarding: Project exists, need to add wallet');
+          
+          // Fetch the existing project ID
+          try {
+            const { api } = await import('../services/apiClient');
+            const projectsResponse = await api.projects.list();
+            if (projectsResponse.success && projectsResponse.data && projectsResponse.data.length > 0) {
+              const { setCreatedProjectId } = useOnboardingStore.getState();
+              setCreatedProjectId(projectsResponse.data[0].id);
+            }
+          } catch (error) {
+            console.error('Failed to fetch existing project:', error);
+          }
+          
+          setStep(3);
+        } else if (!user.has_project) {
+          // No project yet - check if we have project data in store
+          const state = useOnboardingStore.getState();
+          if (state.projectData && Object.keys(state.projectData).length > 1) {
+            // Has project data saved - go to step 2 (project form)
+            console.log('Resuming onboarding: Project data saved, showing project form');
+            setStep(2);
+          } else {
+            // Fresh start - go to step 1 (welcome)
+            console.log('Starting onboarding from beginning');
+            setStep(1);
+          }
+        }
+      }
+    };
+
+    restoreOnboardingState();
+  }, [isAuthenticated, user, setStep]);
 
   const handleBack = () => {
     if (currentStep > 1) {
@@ -60,12 +105,13 @@ const Onboarding: React.FC = () => {
         <AnimatePresence mode="wait">
           {currentStep === 1 && <WelcomeStep key="step1" />}
           {currentStep === 2 && <ConnectWalletStep key="step2" />}
-          {currentStep === 3 && <AddWalletStep key="step3" />}
+          {currentStep === 3 && !isCompleting && <AddWalletStep key="step3" />}
+          {isCompleting && <CompletionStep key="completion" />}
         </AnimatePresence>
       </main>
 
       {/* Progress Indicator */}
-      {currentStep > 1 && (
+      {currentStep > 1 && !isCompleting && (
         <div className="p-8">
           <div className="max-w-md mx-auto">
             <div className="flex justify-between items-center mb-2">

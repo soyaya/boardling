@@ -66,11 +66,11 @@ router.post('/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
-    // Create user
+    // Create user with onboarding_completed = false
     const result = await pool.query(
-      `INSERT INTO users (name, email, password_hash)
-       VALUES ($1, $2, $3)
-       RETURNING id, name, email, created_at`,
+      `INSERT INTO users (name, email, password_hash, onboarding_completed)
+       VALUES ($1, $2, $3, false)
+       RETURNING id, name, email, onboarding_completed, created_at`,
       [name, email.toLowerCase(), password_hash]
     );
 
@@ -103,6 +103,7 @@ router.post('/register', async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        onboarding_completed: user.onboarding_completed || false,
         created_at: user.created_at
       }
     });
@@ -177,6 +178,26 @@ router.post('/login', async (req, res) => {
       { expiresIn: JWT_EXPIRATION }
     );
 
+    // Check if user has projects/wallets for onboarding status
+    let hasProject = false;
+    let hasWallet = false;
+    
+    if (!user.onboarding_completed) {
+      const projectCheck = await pool.query(
+        'SELECT id FROM projects WHERE user_id = $1 LIMIT 1',
+        [user.id]
+      );
+      hasProject = projectCheck.rows.length > 0;
+      
+      if (hasProject) {
+        const walletCheck = await pool.query(
+          'SELECT id FROM wallets WHERE project_id = $1 LIMIT 1',
+          [projectCheck.rows[0].id]
+        );
+        hasWallet = walletCheck.rows.length > 0;
+      }
+    }
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -188,7 +209,9 @@ router.post('/login', async (req, res) => {
         created_at: user.created_at,
         subscription_status: user.subscription_status,
         subscription_expires_at: user.subscription_expires_at,
-        onboarding_completed: user.onboarding_completed
+        onboarding_completed: user.onboarding_completed,
+        has_project: hasProject,
+        has_wallet: hasWallet
       }
     });
 

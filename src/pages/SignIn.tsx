@@ -76,8 +76,8 @@ const SignIn: React.FC = () => {
         // The user will be redirected to their intended destination
       }
       // Error handling is managed by the auth store
-    } catch (error) {
-      console.error('Login error:', error);
+    } catch (error: any) {
+      console.error('Login error:', error.message);
     } finally {
       setIsSubmitting(false);
     }

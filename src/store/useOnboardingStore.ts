@@ -23,6 +23,7 @@ interface OnboardingState {
   walletData: Partial<WalletData>;
   createdProjectId: string | null;
   createdWalletId: string | null;
+  isCompleting: boolean;
   
   // Actions
   setStep: (step: number) => void;
@@ -32,6 +33,7 @@ interface OnboardingState {
   updateWalletData: (data: Partial<WalletData>) => void;
   setCreatedProjectId: (id: string) => void;
   setCreatedWalletId: (id: string) => void;
+  setIsCompleting: (completing: boolean) => void;
   reset: () => void;
 }
 
@@ -43,6 +45,7 @@ const initialState = {
   },
   createdProjectId: null,
   createdWalletId: null,
+  isCompleting: false,
 };
 
 export const useOnboardingStore = create<OnboardingState>()(
@@ -72,6 +75,8 @@ export const useOnboardingStore = create<OnboardingState>()(
       
       setCreatedWalletId: (id) => set({ createdWalletId: id }),
       
+      setIsCompleting: (completing) => set({ isCompleting: completing }),
+      
       reset: () => set(initialState),
     }),
     {
@@ -82,6 +87,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         walletData: state.walletData,
         createdProjectId: state.createdProjectId,
         createdWalletId: state.createdWalletId,
+        isCompleting: state.isCompleting,
       }),
     }
   )

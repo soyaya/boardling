@@ -85,14 +85,21 @@ const SignUp: React.FC = () => {
       const response = await register(formData);
       
       if (response.success) {
-        // Registration successful, redirect to sign in
-        // Backend doesn't return token on registration
-        navigate('/signin', { 
-          state: { 
-            message: 'Registration successful! Please sign in with your credentials.',
-            email: formData.email 
-          }
-        });
+        // Registration successful - auto-login if token is provided
+        if (response.token && response.user) {
+          // Token is already stored by authService in register()
+          // User is already set in auth store
+          // Redirect to onboarding
+          navigate('/onboarding');
+        } else {
+          // Fallback: redirect to sign in if no token
+          navigate('/signin', { 
+            state: { 
+              message: 'Registration successful! Please sign in with your credentials.',
+              email: formData.email 
+            }
+          });
+        }
       }
       // Error handling is managed by the auth store
     } catch (error) {
@@ -274,7 +281,7 @@ const SignUp: React.FC = () => {
               )}
             </div>
 
-            <div>
+            {/* <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Company name
               </label>
@@ -289,7 +296,7 @@ const SignUp: React.FC = () => {
                   disabled={isSubmitting}
                 />
               </div>
-            </div>
+            </div> */}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
